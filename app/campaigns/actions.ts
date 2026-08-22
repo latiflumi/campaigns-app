@@ -2,60 +2,128 @@
 
 import { prisma } from "../lib/prisma";
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { z } from "zod";
+import { Campaign } from "../types/CampaignTypes";
 
-const CampaignSchema = z.object ({ 
+const CampaignSchema = z.object ({
+    id: z.string(),
     name: z.string().min(2, "Emri duhet te kete te pakten 2 shkronja"),
-    type: z.enum(['EMAIL', 'SOCIAL', 'SEARCH', 'PUSH']),
+    type: z.enum(['STORE', 'ECOMMERCE', 'SMS', 'EMAIL']),
     status: z.enum(['DRAFT', 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'PAUSED']),
     subject: z.string().optional(),
     participatingStores: z.array(z.string()).default([]),
-    budget: z.number().nullable().optional(),
+    budget: z.string().nullable().optional().transform((val) => val || null),
     content: z.string().optional(),
     startDate: z.coerce.date(),
     endDate:z.coerce.date()
 })
-.refine((data) => {
-    if(data.startDate && data.endDate){
-        return data.endDate >= data.startDate
-    }
-    return true
-}, {
-    message:"Data e perfundimit nuk mund te jete me e madhe se data e fillimit",
-    path:["endDate"],
-})
 
-export async function createCampaign(formData:{
-    name: string
-    type: 'EMAIL' | 'SOCIAL' | 'SEARCH' | 'PUSH'
-    status: 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'PAUSED'
-    subject?: string
-    participatingStores?: string[]
-    budget?: number | number
-    content?: string,
-    startDate: string | null,
-    endDate: string | null
+export async function createCampaign(formData: {
+  name: string
+  type: 'STORE' | 'ECOMMERCE' | 'SMS' | 'EMAIL'
+  status: 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'PAUSED'
+  subject?: string
+  participatingStores?: string[]
+  budget?: string | null
+  content?: string
+  startDate: string | null
+  endDate: string | null
 }) {
-    const vaildatedFields = CampaignSchema.parse({
-        ...formData,
-        budget: formData.budget ? Number(formData.budget) : null,
-    })
-    const newCampaign = await prisma.campaign.create({
-        data : {
-            name: vaildatedFields.name,
-            type: vaildatedFields.type,
-            status: vaildatedFields.status,
-            subject: vaildatedFields.subject,
-            participatingStores: vaildatedFields.participatingStores,
-            budget: vaildatedFields.budget,
-            content: vaildatedFields.content,
-            startDate: vaildatedFields.startDate,
-            endDate: vaildatedFields.endDate,
+  try {
+    const validatedFields = CampaignSchema.parse({
+      ...formData,
+    });
+
+    await prisma.campaign.create({
+      data: validatedFields,
+    });
+
+    revalidatePath("/campaigns");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message };
+    }
+    console.log(error);
+    return { success: false, error: "Gabim gjatë krijimit të kampanjës" };
+  }
+}
+
+export async function updateCampaign(campaignId: string, formData: Campaign) {
+  try {
+    const validatedFields = CampaignSchema.parse({
+      ...formData,
+    });
+
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: validatedFields,
+    });
+
+    revalidatePath("/campaigns");
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { success: false, error: error.issues[0]?.message };
+    }
+    console.log(error);
+    return { success: false, error: "Gabim gjatë përditësimit të kampanjës" };
+  }
+}
+
+export async function deleteCampaign(campaignId: string){
+  try {
+    await prisma.campaign.delete({
+      where: { id: campaignId },
+    });
+    revalidatePath("/campaigns");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Gabim gjatë fshirjes së kampanjës" };
+  }
+}
+
+export async function fetchStoresAction() {
+  return await prisma.store.findMany({
+    select: {
+      id:true,
+      name:true
+    },
+    orderBy:{
+      name:'asc'
+    }
+  })
+}
+
+export async function fetchChannelsAction() {
+    return await prisma.campaign.findMany({
+      distinct: ['type'],  
+      select: {
+            type: true,
         },
+        orderBy:{
+            type:'asc',
+        }
     })
+}
 
-    revalidatePath("/campaigns")
+export async function getCampaignById(id:string) {
 
-    redirect("/campaigns")
+  return await prisma.campaign.findUnique({
+    where: { id },
+    select: {
+      id:true,
+      name:true,
+      type:true,
+      status:true,
+      subject:true,
+      participatingStores:true,
+      budget:true,
+      startDate:true,
+      endDate:true,
+      content:true,
+      createdAt:true,
+      updatedAt:true
+    }
+  })  
 }

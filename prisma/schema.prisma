@@ -12,10 +12,10 @@ generator client {
 }
 
 enum CampaignType {
+  STORE
+  ECOMMERCE
+  SMS
   EMAIL
-  SOCIAL
-  SEARCH
-  PUSH
 }
 
 enum CampaignStatus {
@@ -26,20 +26,29 @@ enum CampaignStatus {
   PAUSED
 }
 
+model Store {
+  id   String @id @default(cuid())
+  name String @unique
+
+  createdAt DateTime @default(now())
+
+  @@map("stores")
+}
+
 model Campaign {
   id                  String         @id @default(cuid())
   name                String
-  type                CampaignType   @default(EMAIL)
+  type                CampaignType   @default(STORE)
   status              CampaignStatus @default(DRAFT)
   subject             String?
   participatingStores String[]       @default([])
-  budget              Float?
+  budget              String?
   startDate           DateTime?
   endDate             DateTime?
   content             String?        @db.Text
-  
-  createdAt           DateTime       @default(now())
-  updatedAt           DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("campaigns")
 }

@@ -1,51 +1,62 @@
 // app/campaigns/new/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createCampaign } from '../actions'
+import { fetchStoresAction } from '../actions'
+
 
 export type Step = 1 | 2 | 3 | 4
 
-// Pre-defined retail stores list
-const AVAILABLE_STORES = [
-  'A&M Clothes Shesh',
-  'A&M Clothes Albi Mall',
-  'A&M Clothes Prishtina Mall',
-  'A&M Clothes Prizren',
-  'A&M Clothes Peja',
-  'A&M Clothes Ferizaj',
-]
+interface Store {
+  id: string,
+  name: string
+}
+
 
 export default function NewCampaignPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState<Step>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [stores, setStores] = useState<Store[]>([])
+  
+  useEffect(() => {
+    const fetchStores = async () => {
+      const storesData = await fetchStoresAction()
+      setStores(storesData)
+    }
+    fetchStores()
+  }, [])
 
   // Form State matching Prisma Enums
   const [formData, setFormData] = useState({
     name: '',
-    type: 'EMAIL' as 'EMAIL' | 'SOCIAL' | 'SEARCH' | 'PUSH',
+    type: 'STORE' as 'STORE' | 'ECOMMERCE' | 'SMS' | 'EMAIL',
     status: 'DRAFT' as 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'PAUSED',
     subject: '',
     targetAudience: 'All Subscribers',
-    participatingStores: ['A&M Clothes Shesh'] as string[],
-    budget: 0,
+    participatingStores: [] as string[],
+    budget: '',
     startDate:'',
     endDate: '',
     content: '',
   })
 
+  
+  const requiresStoreSelection = formData.type === 'STORE';
+
   // Generic handler for input, select, and textarea fields
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target
+    const { name, value } = e.target
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value === '' ? 0 : Number(value)) : value,
+      [name]: value,
     }))
   }
 
@@ -64,9 +75,22 @@ export default function NewCampaignPage() {
 
   const handleNext = () => {
     if (currentStep === 1 && !formData.name.trim()) {
-      alert('Please enter a campaign name before continuing.')
+      toast.error('Ju lutem shkruani emrin e kampanjes para se te vazhdoni')
       return
     }
+    if(currentStep === 2 && !formData.startDate && !formData.endDate){
+      toast.error('Ju lutem plotesoni Datat')
+      return
+    }
+    if (
+  currentStep === 2 &&
+  formData.startDate &&
+  formData.endDate &&
+  new Date(formData.startDate) > new Date(formData.endDate)
+) {
+  toast.error('Data e mbarimit nuk mund te jete me e hershme se data e fillimit')
+  return
+}
     if (currentStep < 4) setCurrentStep((prev) => (prev + 1) as Step)
   }
 
@@ -74,21 +98,31 @@ export default function NewCampaignPage() {
     if (currentStep > 1) setCurrentStep((prev) => (prev - 1) as Step)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setIsSubmitting(true)
 
-    try {
-      await createCampaign({
-        ...formData,
-        budget: Number(formData.budget),
-      })
-    } catch (error) {
-      console.error('Failed to create campaign:', error)
+  try {
+    const result = await createCampaign({
+      ...formData
+    })
+
+    if (result && !result.success) {
+      // Trigger error toast with the custom Zod message from your Server Action
+      toast.error(result.error || 'Gabim gjatë krijimit të kampanjës')
       setIsSubmitting(false)
+      return
     }
-  }
 
+    // Trigger success toast and redirect
+    toast.success('Kampanja u krijua me sukses!')
+    router.push('/campaigns')
+  } catch (error) {
+    console.error('Failed to create campaign:', error)
+    toast.error('Një gabim i papritur ndodhi. Ju lutemi provoni përsëri.')
+    setIsSubmitting(false)
+  }
+}
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
@@ -168,10 +202,10 @@ export default function NewCampaignPage() {
                   onChange={handleInputChange}
                   className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="EMAIL">Email Marketing</option>
-                  <option value="SOCIAL">Paid Social (Meta/TikTok)</option>
-                  <option value="SEARCH">Search Engine (Google Ads)</option>
-                  <option value="PUSH">Push Notification</option>
+                  <option value="STORE">Ne dyqane</option>
+                  <option value="ECOMMERCE">Ecommerce</option>
+                  <option value="SMS">SMS</option>
+                  <option value="EMAIL">EMAIL</option>
                 </select>
               </div>
 
@@ -184,7 +218,7 @@ export default function NewCampaignPage() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleInputChange}
-                  placeholder="e.g. Exclusive 20% Off Inside!"
+                  placeholder="p.sh 50% zbritje ne te gjithe artikujt..."
                   className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
                 />
               </div>
@@ -200,25 +234,26 @@ export default function NewCampaignPage() {
             </h2>
 
             {/* Participating Stores Selector */}
-            <div>
+            {requiresStoreSelection && (
+              <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Participating Retail Locations ({formData.participatingStores.length} Selected)
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                {AVAILABLE_STORES.map((store) => {
-                  const isSelected = formData.participatingStores.includes(store)
+                {stores.map((store) => {
+                  const isSelected = formData.participatingStores.includes(store.name)
                   return (
                     <button
-                      key={store}
+                      key={store.id}
                       type="button"
-                      onClick={() => handleStoreToggle(store)}
+                      onClick={() => handleStoreToggle(store.name)}
                       className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md border transition-all text-left ${
                         isSelected
                           ? 'bg-blue-50 border-blue-500 text-blue-900 font-semibold'
                           : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                       }`}
                     >
-                      <span>{store}</span>
+                      <span>{store.name}</span>
                       <span
                         className={`h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold ${
                           isSelected
@@ -233,20 +268,38 @@ export default function NewCampaignPage() {
                 })}
               </div>
             </div>
-
-            <div className="gap-4">
+             ) }
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                   Total Allocated Budget ($)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="budget"
                   value={formData.budget}
                   onChange={handleInputChange}
                   placeholder="5000"
                   className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="DRAFT">Draft</option>
+                  <option value="SCHEDULED">Scheduled</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="PAUSED">Paused</option>
+                </select>
               </div>
             </div>
 

@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import './globals.css'
 import { Roboto } from 'next/font/google'
+import { Toaster } from 'sonner'
 
 const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
@@ -81,6 +82,7 @@ export default function RootLayout({
 
         {/* Active Page Content */}
         <main className="p-6">
+          <Toaster position="top-right" richColors closeButton />
           {children}
         </main>
       </body>
