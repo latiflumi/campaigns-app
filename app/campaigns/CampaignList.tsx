@@ -3,6 +3,19 @@
 import { useState } from "react"
 import { Campaign } from "../types/CampaignTypes"
 import Link from "next/link"
+import {
+  Store,
+  Globe,
+  MessageSquare,
+  Mail,
+  CalendarDays,
+  Clock,
+  CheckCircle2,
+  PauseCircle,
+  FileText,
+  AlertCircle,
+  Tag
+} from 'lucide-react'
 import { deleteCampaign } from "./actions"
 import { toast } from "sonner"
 
@@ -17,6 +30,66 @@ interface CampaignListProps {
   stores?: Store[]
   channels?: { type: string }[]
 }
+// Helper for Channel Icons & Badges
+function ChannelBadge({ type }: { type: string }) {
+  const normalized = type?.toUpperCase() || ''
+  
+  let icon = Tag
+  let colorClass = 'bg-slate-100 text-slate-700 border-slate-200'
+
+  if (normalized.includes('STORE')) {
+    icon = Store
+    colorClass = 'bg-indigo-50 text-indigo-700 border-indigo-200'
+  } else if (normalized.includes('ONLINE') || normalized.includes('ECOMMERCE')) {
+    icon = Globe
+    colorClass = 'bg-cyan-50 text-cyan-700 border-cyan-200'
+  } else if (normalized.includes('SMS')) {
+    icon = MessageSquare
+    colorClass = 'bg-amber-50 text-amber-700 border-amber-200'
+  } else if (normalized.includes('EMAIL')) {
+    icon = Mail
+    colorClass = 'bg-purple-50 text-purple-700 border-purple-200'
+  }
+
+  const IconComponent = icon
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${colorClass}`}>
+      <IconComponent className="h-3 w-3" />
+      {type}
+    </span>
+  )
+}
+
+// Helper for Status Badges
+function StatusBadge({ status }: { status: string }) {
+  let icon = FileText
+  let colorClass = 'bg-slate-100 text-slate-600 border-slate-200'
+
+  if (status === 'ACTIVE') {
+    icon = CheckCircle2
+    colorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  } else if (status === 'PAUSED') {
+    icon = PauseCircle
+    colorClass = 'bg-blue-50 text-blue-700 border-blue-200'
+  } else if (status === 'DRAFT') {
+    icon = AlertCircle
+    colorClass = 'bg-amber-50 text-amber-700 border-amber-200'
+  } else if (status === 'COMPLETED') {
+    icon = CheckCircle2
+    colorClass = 'bg-slate-100 text-slate-500 border-slate-200'
+  }
+
+  const IconComponent = icon
+
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${colorClass}`}>
+      <IconComponent className="h-3 w-3" />
+      {status}
+    </span>
+  )
+}
+
 
 export default function CampaignList({
   initialCampaigns = [],
@@ -56,7 +129,7 @@ export default function CampaignList({
         </div>
         <Link
           href="/campaigns/new"
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
+          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 transition-colors"
         >
           + Create New Campaign
         </Link>
@@ -130,8 +203,8 @@ export default function CampaignList({
             />
             <span className="absolute left-3 top-2.5 text-slate-400 text-sm">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
-  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-</svg>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+              </svg>
             </span>
           </div>
 
@@ -151,11 +224,12 @@ export default function CampaignList({
             </select>
 
             <select 
-            value={selectedChannel}
-            onChange = {(e) => setSelectedChannel(e.target.value)}
-            className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              value={selectedChannel}
+              onChange={(e) => setSelectedChannel(e.target.value)}
+              className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               <option value="All">All Channels</option>
-              {channels.map((channel, index) =>(
+              {channels.map((channel, index) => (
                 <option key={index} value={channel.type}>
                   {channel.type}
                 </option>
@@ -165,126 +239,118 @@ export default function CampaignList({
         </div>
       </div>
 
-      {/* Main Data Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-medium border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3.5">Campaign</th>
-                <th className="px-4 py-3.5">Channel</th>
-                <th className="px-4 py-3.5">Status</th>
-                <th className="px-4 py-3.5">Budget</th>
-                <th className="px-4 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-8 text-slate-400">
-                    Nuk u gjet asnjë kampanjë.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((campaign) => (
-                  <tr key={campaign.id} className="hover:bg-slate-50/60 transition-colors group">
-                  <td className="px-4 py-4">
-                      <Link
-                        href={`/campaigns/${campaign.id}`}
-                        className="font-semibold text-slate-900 hover:text-blue-600 transition-colors block"
-                      >
-                        {campaign.name}
-                      </Link>
-                      <span className="text-xs text-slate-400">
-                        {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'N/A'} –{' '}
-                        {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'N/A'}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-100 text-slate-700">
-                        {campaign.type}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          campaign.status === 'ACTIVE'
-                            ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20'
-                            : campaign.status === 'DRAFT'
-                            ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20'
-                            : campaign.status === 'PAUSED'
-                            ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20'
-                            : 'bg-slate-100 text-slate-600 ring-1 ring-slate-500/20'
-                        }`}
-                      >
-                        {campaign.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4 font-medium text-slate-900">
-                      {campaign.budget ? `$${campaign.budget}` : 'N/A'}
-                    </td>
-
-                    <td className="px-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/campaigns/${campaign.id}/edit`}
-                          className="text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded transition-colors"
-                        >
-                          Edit
-                        </Link>
-                        <Link
-                          href={`/campaigns/${campaign.id}`}
-                          className="text-xs font-medium text-blue-600 hover:text-blue-500 px-2.5 py-1.5 rounded"
-                        >
-                          View →
-                        </Link>
-                      <button
-  onClick={() => {
-    toast('Delete item permanently?', {
-      duration: Infinity,
-      action: {
-        label: 'Delete',
-        onClick: () => {
-          // Wrap the async Server Action in toast.promise
-          toast.promise(deleteCampaign(campaign.id), {
-            loading: 'Deleting campaign...',
-            success: 'Campaign deleted successfully!',
-            error: 'Failed to delete campaign.',
-          });
-        },
-      },
-      cancel: {
-        label: 'Cancel',
-        onClick: () => {
-          toast.info('Deletion cancelled.', { duration: 2000 });
-        },
-      },
-    });
-  }}
-  className="text-xs font-medium text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
->
-  Delete
-</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Rich Cards Grid */}
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-400 shadow-xs">
+          Nuk u gjet asnjë kampanjë.
         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filtered.map((campaign) => (
+            <div
+              key={campaign.id}
+              className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:shadow-md hover:border-slate-300"
+            >
+              <div>
+                {/* Header Badges */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <ChannelBadge type={campaign.type} />
+                  <StatusBadge status={campaign.status} />
+                </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between text-sm text-slate-500">
-          <div>
-            Showing <span className="font-semibold text-slate-900">{filtered.length > 0 ? 1 : 0}</span> to{' '}
-            <span className="font-semibold text-slate-900">{filtered.length}</span> of{' '}
-            <span className="font-semibold text-slate-900">{filtered.length}</span> results
-          </div>
+                {/* Campaign Name */}
+                <Link
+                  href={`/campaigns/${campaign.id}`}
+                  className="font-semibold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 block"
+                >
+                  {campaign.name}
+                </Link>
+
+                {/* Structured Metadata Rows with Lucide Icons */}
+                <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs text-slate-600">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-500">
+                      <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                      Kohëzgjatja:
+                    </span>
+                    <span className="font-medium text-slate-700">
+                      {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'N/A'} –{' '}
+                      {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-500">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      Buxheti:
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {campaign.budget ? `€${campaign.budget}` : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-500">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      Dyqanet pjesemarrese:
+                    </span>
+                    <span className="font-semibold text-slate-900">
+                      {campaign.participatingStores.length > 1 ? `${campaign.participatingStores.length} Dyqane` : campaign.participatingStores.length === 1 ? campaign.participatingStores[0] : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer Actions */}
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
+                <span className="text-[11px] font-medium text-slate-400">
+                  ID: #{campaign.id}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={`/campaigns/${campaign.id}/edit`}
+                    className="text-xs cursor-default font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded transition-colors"
+                  >
+                    Edit
+                  </Link>
+                  <Link
+                    href={`/campaigns/${campaign.id}`}
+                    className="text-xs cursor-default font-medium text-blue-600 bg-slate-100 hover:bg-slate-200 hover:text-blue-500 px-2.5 py-1.5 rounded"
+                  >
+                    View →
+                  </Link>
+                  <button
+                    onClick={() => {
+                      toast('Delete item permanently?', {
+                        duration: Infinity,
+                        action: {
+                          label: 'Delete',
+                          onClick: () => {
+                            toast.promise(deleteCampaign(campaign.id), {
+                              loading: 'Deleting campaign...',
+                              success: 'Campaign deleted successfully!',
+                              error: 'Failed to delete campaign.',
+                            });
+                          },
+                        },
+                        cancel: {
+                          label: 'Cancel',
+                          onClick: () => {
+                            toast.info('Deletion cancelled.', { duration: 2000 });
+                          },
+                        },
+                      });
+                    }}
+                    className="text-xs font-medium text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   )
 }

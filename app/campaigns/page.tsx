@@ -7,7 +7,7 @@ import { fetchChannelsAction } from "./actions";
 export default async function CampaignsPage() {
 const [campaigns, stores, channels] = await Promise.all([
     prisma.campaign.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { startDate: "desc" },
     }),
     fetchStoresAction(),
     fetchChannelsAction(),
@@ -27,7 +27,11 @@ const [campaigns, stores, channels] = await Promise.all([
     },
   });
 
+  const serializedCampaigns = JSON.parse(JSON.stringify(campaigns))
+  const serializedStores = JSON.parse(JSON.stringify(stores))
+  
 
-  return <CampaignList initialCampaigns={campaigns} stores={stores} channels={channels} />
+
+  return <CampaignList initialCampaigns={serializedCampaigns} stores={serializedStores} channels={channels} />
 }
 

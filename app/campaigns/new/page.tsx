@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createCampaign } from '../actions'
 import { fetchStoresAction } from '../actions'
+import { CampaignStatus, CampaignType } from '@/app/types/CampaignTypes'
 
 
 export type Step = 1 | 2 | 3 | 4
@@ -16,6 +17,18 @@ interface Store {
   name: string
 }
 
+interface CampaignFormData {
+  name: string
+  type: CampaignType
+  status: CampaignStatus
+  subject: string
+  targetAudience: string
+  participatingStores: string[]
+  budget: string
+  startDate: string
+  endDate: string
+  content: string
+}
 
 export default function NewCampaignPage() {
   const router = useRouter()
@@ -32,7 +45,7 @@ export default function NewCampaignPage() {
   }, [])
 
   // Form State matching Prisma Enums
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CampaignFormData>({
     name: '',
     type: 'STORE' as 'STORE' | 'ECOMMERCE' | 'SMS' | 'EMAIL',
     status: 'DRAFT' as 'DRAFT' | 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'PAUSED',
