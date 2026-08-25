@@ -17,7 +17,9 @@ const [campaigns, stores, channels] = await Promise.all([
 
   await prisma.campaign.updateMany({
     where: {
-      status: 'SCHEDULED',
+      status: {
+        in: ['SCHEDULED', 'DRAFT'],
+      },
       startDate: {
         lte: now,
       },
@@ -29,7 +31,6 @@ const [campaigns, stores, channels] = await Promise.all([
 
   const serializedCampaigns = JSON.parse(JSON.stringify(campaigns))
   const serializedStores = JSON.parse(JSON.stringify(stores))
-  
 
 
   return <CampaignList initialCampaigns={serializedCampaigns} stores={serializedStores} channels={channels} />

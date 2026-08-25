@@ -14,7 +14,13 @@ import {
   PauseCircle,
   FileText,
   AlertCircle,
-  Tag
+  Tag,
+  Calendar, 
+  ArrowRight, 
+  X,
+  Pencil, 
+  Eye, 
+  Trash2
 } from 'lucide-react'
 import { deleteCampaign } from "./actions"
 import { toast } from "sonner"
@@ -100,14 +106,41 @@ export default function CampaignList({
   const [status, setStatus] = useState("All")
   const [selectedStore, setSelectedStore] = useState("All")
   const [selectedChannel, setSelectedChannel] = useState("All")
-
+  const [startDateFilter, setStartDateFilter] = useState("")
+  const [endDateFilter, setEndDateFilter] = useState("")
+ 
+ 
   // 1. Filter by search & store selection FIRST (Base set for dynamic counts)
   const storeFiltered = initialCampaigns.filter((c) => {
     const matchedSearch = c.name.toLowerCase().includes(search.toLowerCase())
     const matchedStore = selectedStore === "All" ||   (c.participatingStores && c.participatingStores.includes(selectedStore))
     const matchedChannel = selectedChannel === "All" || c.type === selectedChannel
+    
+    // Date Range Overlap Logic
+  let matchedDate = true
 
-    return matchedSearch && matchedStore && matchedChannel
+  if (c.startDate && c.endDate) {
+    const campaignStart = new Date(c.startDate).getTime()
+    const campaignEnd = new Date(c.endDate).getTime()
+
+    if (startDateFilter) {
+      // Normalize start filter to 00:00:00
+      const filterStart = new Date(startDateFilter).setHours(0, 0, 0, 0)
+      // Campaign must end ON or AFTER the selected start date
+      if (campaignEnd < filterStart) matchedDate = false
+    }
+
+    if (endDateFilter && matchedDate) {
+      // Normalize end filter to 23:59:59
+      const filterEnd = new Date(endDateFilter).setHours(23, 59, 59, 999)
+      // Campaign must start ON or BEFORE the selected end date
+      if (campaignStart > filterEnd) matchedDate = false
+    }
+  }
+
+
+
+    return matchedSearch && matchedStore && matchedChannel && matchedDate
   })
 
   // 2. Filter by status tab SECOND (Final set for table view)
@@ -207,6 +240,57 @@ export default function CampaignList({
               </svg>
             </span>
           </div>
+            {/* Date Range Filters */}
+<div className="w-full sm:w-auto">
+  <div className="bg-slate-50/80 p-2 sm:p-1.5 border border-slate-200/80 rounded-2xl sm:rounded-xl shadow-2xs">
+    
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      
+      {/* Start Date */}
+      <div className="relative flex items-center w-full sm:w-auto">
+        <Calendar className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none z-10" />
+        <input
+          type="date"
+          value={startDateFilter}
+          onChange={(e) => setStartDateFilter(e.target.value)}
+          className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 sm:border-0 rounded-xl sm:rounded-lg bg-white text-slate-700 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
+        />
+      </div>
+
+      {/* Separator - Arrow on Desktop, Subtle Label on Mobile */}
+      <div className="hidden sm:flex items-center justify-center shrink-0">
+        <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+      </div>
+
+      {/* End Date */}
+      <div className="relative flex items-center w-full sm:w-auto">
+        <Calendar className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none z-10" />
+        <input
+          type="date"
+          value={endDateFilter}
+          onChange={(e) => setEndDateFilter(e.target.value)}
+          className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 sm:border-0 rounded-xl sm:rounded-lg bg-white text-slate-700 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
+        />
+      </div>
+
+      {/* Clear Action - Full Width Button on Mobile, Compact Icon on Desktop */}
+      {(startDateFilter || endDateFilter) && (
+        <button
+          type="button"
+          onClick={() => {
+            setStartDateFilter("")
+            setEndDateFilter("")
+          }}
+          className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-200/60 hover:bg-slate-200 rounded-xl sm:rounded-lg transition-colors cursor-pointer mt-1 sm:mt-0"
+        >
+          <X className="h-3.5 w-3.5" />
+          <span className="sm:hidden">Reset Dates</span>
+        </button>
+      )}
+
+    </div>
+  </div>
+</div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* Dynamic Store Filter Dropdown */}
@@ -239,7 +323,7 @@ export default function CampaignList({
         </div>
       </div>
 
-      {/* Rich Cards Grid */}
+      {/* Cards Grid */}
       {filtered.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-400 shadow-xs">
           Nuk u gjet asnjë kampanjë.
@@ -274,8 +358,8 @@ export default function CampaignList({
                       Kohëzgjatja:
                     </span>
                     <span className="font-medium text-slate-700">
-                      {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString() : 'N/A'} –{' '}
-                      {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString() : 'N/A'}
+                      {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-GB') : 'N/A'} –{' '}
+                      {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB') : 'N/A'}
                     </span>
                   </div>
 
@@ -309,15 +393,14 @@ export default function CampaignList({
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/campaigns/${campaign.id}/edit`}
-                    className="text-xs cursor-default font-medium text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded transition-colors"
-                  >
-                    Edit
+className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"                  >
+                    <Pencil className="h-3.5 w-3.5" />
                   </Link>
                   <Link
                     href={`/campaigns/${campaign.id}`}
-                    className="text-xs cursor-default font-medium text-blue-600 bg-slate-100 hover:bg-slate-200 hover:text-blue-500 px-2.5 py-1.5 rounded"
+                    className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
                   >
-                    View →
+                    <Eye className="h-3.5 w-3.5" />
                   </Link>
                   <button
                     onClick={() => {
@@ -341,9 +424,9 @@ export default function CampaignList({
                         },
                       });
                     }}
-                    className="text-xs font-medium text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-2.5 py-1.5 rounded transition-colors"
+                    className="p-1.5 text-slate-500 hover:text-rose-700 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
                   >
-                    Delete
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
