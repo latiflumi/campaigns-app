@@ -13,7 +13,7 @@ import { CampaignStatus, CampaignType } from '@/app/types/CampaignTypes'
 export type Step = 1 | 2 | 3 | 4
 
 interface Store {
-  id: string,
+  id: number,
   name: string
 }
 
