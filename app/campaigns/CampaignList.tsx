@@ -20,11 +20,11 @@ import {
   X,
   Pencil, 
   Eye, 
-  Trash2
+  Trash2,
+  TrendingUp
 } from 'lucide-react'
 import { deleteCampaign } from "./actions"
 import { toast } from "sonner"
-
 
 interface Store {
   id: string
@@ -381,6 +381,19 @@ export default function CampaignList({
                       {campaign.participatingStores.length > 1 ? `${campaign.participatingStores.length} Dyqane` : campaign.participatingStores.length === 1 ? campaign.participatingStores[0] : 'N/A'}
                     </span>
                   </div>
+                  {/* Dynamic Gross Revenue Display */}
+<div className="flex items-center justify-between pt-2 border-t border-slate-100">
+  <span className="flex items-center gap-1.5 text-slate-500 text-sm">
+    <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+    Qarkullimi Bruto:
+  </span>
+  <span className="font-bold text-slate-900 text-sm">
+    €{(campaign.grossRevenue ?? 0).toLocaleString("de-DE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}
+  </span>
+</div>
                 </div>
               </div>
 
