@@ -36,25 +36,26 @@ interface CampaignListProps {
   stores?: Store[]
   channels?: { type: string }[]
 }
+
 // Helper for Channel Icons & Badges
 function ChannelBadge({ type }: { type: string }) {
   const normalized = type?.toUpperCase() || ''
   
   let icon = Tag
-  let colorClass = 'bg-slate-100 text-slate-700 border-slate-200'
+  let colorClass = 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
 
   if (normalized.includes('STORE')) {
     icon = Store
-    colorClass = 'bg-indigo-50 text-indigo-700 border-indigo-200'
+    colorClass = 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/60'
   } else if (normalized.includes('ONLINE') || normalized.includes('ECOMMERCE')) {
     icon = Globe
-    colorClass = 'bg-cyan-50 text-cyan-700 border-cyan-200'
+    colorClass = 'bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800/60'
   } else if (normalized.includes('SMS')) {
     icon = MessageSquare
-    colorClass = 'bg-amber-50 text-amber-700 border-amber-200'
+    colorClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60'
   } else if (normalized.includes('EMAIL')) {
     icon = Mail
-    colorClass = 'bg-purple-50 text-purple-700 border-purple-200'
+    colorClass = 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-800/60'
   }
 
   const IconComponent = icon
@@ -70,20 +71,20 @@ function ChannelBadge({ type }: { type: string }) {
 // Helper for Status Badges
 function StatusBadge({ status }: { status: string }) {
   let icon = FileText
-  let colorClass = 'bg-slate-100 text-slate-600 border-slate-200'
+  let colorClass = 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
 
   if (status === 'ACTIVE') {
     icon = CheckCircle2
-    colorClass = 'bg-emerald-50 text-emerald-700 border-emerald-200'
+    colorClass = 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60'
   } else if (status === 'PAUSED') {
     icon = PauseCircle
-    colorClass = 'bg-blue-50 text-blue-700 border-blue-200'
+    colorClass = 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/60'
   } else if (status === 'DRAFT') {
     icon = AlertCircle
-    colorClass = 'bg-amber-50 text-amber-700 border-amber-200'
+    colorClass = 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60'
   } else if (status === 'COMPLETED') {
     icon = CheckCircle2
-    colorClass = 'bg-slate-100 text-slate-500 border-slate-200'
+    colorClass = 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
   }
 
   const IconComponent = icon
@@ -96,7 +97,6 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-
 export default function CampaignList({
   initialCampaigns = [],
   stores = [],
@@ -108,37 +108,30 @@ export default function CampaignList({
   const [selectedChannel, setSelectedChannel] = useState("All")
   const [startDateFilter, setStartDateFilter] = useState("")
   const [endDateFilter, setEndDateFilter] = useState("")
- 
- 
+
   // 1. Filter by search & store selection FIRST (Base set for dynamic counts)
   const storeFiltered = initialCampaigns.filter((c) => {
     const matchedSearch = c.name.toLowerCase().includes(search.toLowerCase())
-    const matchedStore = selectedStore === "All" ||   (c.participatingStores && c.participatingStores.includes(selectedStore))
+    const matchedStore = selectedStore === "All" || (c.participatingStores && c.participatingStores.includes(selectedStore))
     const matchedChannel = selectedChannel === "All" || c.type === selectedChannel
     
     // Date Range Overlap Logic
-  let matchedDate = true
+    let matchedDate = true
 
-  if (c.startDate && c.endDate) {
-    const campaignStart = new Date(c.startDate).getTime()
-    const campaignEnd = new Date(c.endDate).getTime()
+    if (c.startDate && c.endDate) {
+      const campaignStart = new Date(c.startDate).getTime()
+      const campaignEnd = new Date(c.endDate).getTime()
 
-    if (startDateFilter) {
-      // Normalize start filter to 00:00:00
-      const filterStart = new Date(startDateFilter).setHours(0, 0, 0, 0)
-      // Campaign must end ON or AFTER the selected start date
-      if (campaignEnd < filterStart) matchedDate = false
+      if (startDateFilter) {
+        const filterStart = new Date(startDateFilter).setHours(0, 0, 0, 0)
+        if (campaignEnd < filterStart) matchedDate = false
+      }
+
+      if (endDateFilter && matchedDate) {
+        const filterEnd = new Date(endDateFilter).setHours(23, 59, 59, 999)
+        if (campaignStart > filterEnd) matchedDate = false
+      }
     }
-
-    if (endDateFilter && matchedDate) {
-      // Normalize end filter to 23:59:59
-      const filterEnd = new Date(endDateFilter).setHours(23, 59, 59, 999)
-      // Campaign must start ON or BEFORE the selected end date
-      if (campaignStart > filterEnd) matchedDate = false
-    }
-  }
-
-
 
     return matchedSearch && matchedStore && matchedChannel && matchedDate
   })
@@ -153,151 +146,149 @@ export default function CampaignList({
       {/* Header & Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Campaigns
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
             Manage, filter, and track all marketing campaigns in one place.
           </p>
         </div>
         <Link
           href="/campaigns/new"
-          className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 transition-colors"
+          className="inline-flex items-center justify-center rounded-lg bg-blue-600 dark:bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-500 dark:hover:bg-blue-500 transition-colors"
         >
           + Create New Campaign
         </Link>
       </div>
 
       {/* Filter Toolbar & Status Tabs */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
-        {/* Top Status Tabs using dynamic counts from storeFiltered */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-sm font-medium">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-xs space-y-4">
+        {/* Top Status Tabs */}
+        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto text-sm font-medium">
           <button
             onClick={() => setStatus("All")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               status === "All"
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             All ({storeFiltered.length})
           </button>
           <button
             onClick={() => setStatus("ACTIVE")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               status === "ACTIVE"
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             Active ({storeFiltered.filter((c) => c.status === "ACTIVE").length})
           </button>
           <button
             onClick={() => setStatus("DRAFT")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               status === "DRAFT"
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             Drafts ({storeFiltered.filter((c) => c.status === "DRAFT").length})
           </button>
           <button
             onClick={() => setStatus("PAUSED")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               status === "PAUSED"
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             Paused ({storeFiltered.filter((c) => c.status === "PAUSED").length})
           </button>
           <button
             onClick={() => setStatus("COMPLETED")}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
               status === "COMPLETED"
-                ? "bg-slate-900 text-white"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
             Completed ({storeFiltered.filter((c) => c.status === "COMPLETED").length})
           </button>
         </div>
 
-        {/* Search Input + Dynamic Store Dropdown */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Search Input + Dynamic Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 dark:border-slate-500">
           <div className="relative w-full sm:w-80">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by campaign name..."
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50/50"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
-            <span className="absolute left-3 top-2.5 text-slate-400 text-sm">
+            <span className="absolute left-3 top-2.5 text-slate-400 dark:text-slate-500 text-sm">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
               </svg>
             </span>
           </div>
-            {/* Date Range Filters */}
-<div className="w-full sm:w-auto">
-  <div className="bg-slate-50/80 p-2 sm:p-1.5 border border-slate-200/80 rounded-2xl sm:rounded-xl shadow-2xs">
-    
-    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-      
-      {/* Start Date */}
-      <div className="relative flex items-center w-full sm:w-auto">
-        <Calendar className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none z-10" />
-        <input
-          type="date"
-          value={startDateFilter}
-          onChange={(e) => setStartDateFilter(e.target.value)}
-          className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 sm:border-0 rounded-xl sm:rounded-lg bg-white text-slate-700 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
-        />
-      </div>
 
-      {/* Separator - Arrow on Desktop, Subtle Label on Mobile */}
-      <div className="hidden sm:flex items-center justify-center shrink-0">
-        <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-      </div>
+          {/* Date Range Filters */}
+          <div className="w-full sm:w-auto">
+            <div className="bg-slate-50/80 dark:bg-slate-800/60 p-2 sm:p-1.5 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl sm:rounded-xl shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                {/* Start Date */}
+                <div className="relative flex items-center w-full sm:w-auto">
+                  <Calendar className="absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10" />
+                  <input
+                    type="date"
+                    value={startDateFilter}
+                    onChange={(e) => setStartDateFilter(e.target.value)}
+                    className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700 sm:border-0 rounded-xl sm:rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
+                  />
+                </div>
 
-      {/* End Date */}
-      <div className="relative flex items-center w-full sm:w-auto">
-        <Calendar className="absolute left-3 h-4 w-4 text-slate-400 pointer-events-none z-10" />
-        <input
-          type="date"
-          value={endDateFilter}
-          onChange={(e) => setEndDateFilter(e.target.value)}
-          className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 sm:border-0 rounded-xl sm:rounded-lg bg-white text-slate-700 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
-        />
-      </div>
+                {/* Arrow Separator */}
+                <div className="hidden sm:flex items-center justify-center shrink-0">
+                  <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                </div>
 
-      {/* Clear Action - Full Width Button on Mobile, Compact Icon on Desktop */}
-      {(startDateFilter || endDateFilter) && (
-        <button
-          type="button"
-          onClick={() => {
-            setStartDateFilter("")
-            setEndDateFilter("")
-          }}
-          className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-700 bg-slate-200/60 hover:bg-slate-200 rounded-xl sm:rounded-lg transition-colors cursor-pointer mt-1 sm:mt-0"
-        >
-          <X className="h-3.5 w-3.5" />
-          <span className="sm:hidden">Reset Dates</span>
-        </button>
-      )}
+                {/* End Date */}
+                <div className="relative flex items-center w-full sm:w-auto">
+                  <Calendar className="absolute left-3 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none z-10" />
+                  <input
+                    type="date"
+                    value={endDateFilter}
+                    onChange={(e) => setEndDateFilter(e.target.value)}
+                    className="w-full sm:w-36 pl-9 pr-3 py-2 sm:py-1.5 text-xs font-medium border border-slate-200 dark:border-slate-700 sm:border-0 rounded-xl sm:rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 shadow-2xs ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer appearance-none min-h-[38px] sm:min-h-0"
+                  />
+                </div>
 
-    </div>
-  </div>
-</div>
+                {/* Clear Action */}
+                {(startDateFilter || endDateFilter) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStartDateFilter("")
+                      setEndDateFilter("")
+                    }}
+                    className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-slate-700/60 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer mt-1 sm:mt-0"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    <span className="sm:hidden">Reset Dates</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            {/* Dynamic Store Filter Dropdown */}
+            {/* Store Dropdown */}
             <select
               value={selectedStore}
               onChange={(e) => setSelectedStore(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+              className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium cursor-pointer"
             >
               <option value="All">All Stores</option>
               {stores.map((store) => (
@@ -307,10 +298,11 @@ export default function CampaignList({
               ))}
             </select>
 
+            {/* Channel Dropdown */}
             <select 
               value={selectedChannel}
               onChange={(e) => setSelectedChannel(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="All">All Channels</option>
               {channels.map((channel, index) => (
@@ -325,7 +317,7 @@ export default function CampaignList({
 
       {/* Cards Grid */}
       {filtered.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-400 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-12 text-center text-slate-400 dark:text-slate-500 shadow-xs">
           Nuk u gjet asnjë kampanjë.
         </div>
       ) : (
@@ -333,7 +325,7 @@ export default function CampaignList({
           {filtered.map((campaign) => (
             <div
               key={campaign.id}
-              className="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:shadow-md hover:border-slate-300"
+              className="group relative flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-all hover:shadow-md dark:hover:border-slate-700 hover:border-slate-300"
             >
               <div>
                 {/* Header Badges */}
@@ -345,73 +337,76 @@ export default function CampaignList({
                 {/* Campaign Name */}
                 <Link
                   href={`/campaigns/${campaign.id}`}
-                  className="font-semibold text-base text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 block"
+                  className="font-semibold text-base text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 block"
                 >
                   {campaign.name}
                 </Link>
 
-                {/* Structured Metadata Rows with Lucide Icons */}
-                <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs text-slate-600">
+                {/* Structured Metadata Rows */}
+                <div className="mt-4 space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-600 dark:text-slate-400">
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-500">
-                      <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                      <CalendarDays className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                       Kohëzgjatja:
                     </span>
-                    <span className="font-medium text-slate-700">
+                    <span className="font-medium text-slate-700 dark:text-slate-300">
                       {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-GB') : 'N/A'} –{' '}
                       {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB') : 'N/A'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-500">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                      <Store className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                       Buxheti:
                     </span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
                       {campaign.budget ? `€${campaign.budget}` : 'N/A'}
                     </span>
                   </div>
+
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-slate-500">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                    <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                      <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                       Dyqanet pjesemarrese:
                     </span>
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-900 dark:text-slate-100">
                       {campaign.participatingStores.length > 1 ? `${campaign.participatingStores.length} Dyqane` : campaign.participatingStores.length === 1 ? campaign.participatingStores[0] : 'N/A'}
                     </span>
                   </div>
+
                   {/* Dynamic Gross Revenue Display */}
-<div className="flex items-center justify-between pt-2 border-t border-slate-100">
-  <span className="flex items-center gap-1.5 text-slate-500 text-sm">
-    <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-    Qarkullimi Bruto:
-  </span>
-  <span className="font-bold text-slate-900 text-sm">
-    €{(campaign.grossRevenue ?? 0).toLocaleString("de-DE", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}
-  </span>
-</div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm">
+                      <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                      Qarkullimi Bruto:
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                      €{(campaign.grossRevenue ?? 0).toLocaleString("de-DE", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Card Footer Actions */}
-              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
-                <span className="text-[11px] font-medium text-slate-400">
+              <div className="mt-5 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3">
+                <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                   ID: #{campaign.id}
                 </span>
 
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/campaigns/${campaign.id}/edit`}
-className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"                  >
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                  >
                     <Pencil className="h-3.5 w-3.5" />
                   </Link>
                   <Link
                     href={`/campaigns/${campaign.id}`}
-                    className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-950/60 rounded-lg transition-colors cursor-pointer"
                   >
                     <Eye className="h-3.5 w-3.5" />
                   </Link>
@@ -437,7 +432,7 @@ className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-
                         },
                       });
                     }}
-                    className="p-1.5 text-slate-500 hover:text-rose-700 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer"
+                    className="p-1.5 text-slate-500 dark:text-slate-400 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

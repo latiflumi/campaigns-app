@@ -7,6 +7,9 @@ export interface CampaignDetailedAnalytics {
     totalCost: number
     grossProfit: number
     totalUnitsSold: number
+    grossMarginPct: number
+    markdownAmount: number
+    markdownPct: number
   }
   storeBreakdown: Array<{
     OrgId: number
@@ -15,6 +18,9 @@ export interface CampaignDetailedAnalytics {
     netRevenue: number
     unitsSold: number
     grossProfit: number
+    grossMarginPct: number
+    markdownAmount: number
+    markdownPct: number
   }>
   topProducts: Array<{
     ArtikulliId: number

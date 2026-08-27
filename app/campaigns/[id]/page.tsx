@@ -101,7 +101,7 @@ export default async function CampaignDetailPage({
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Navigation & Actions Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-6 border-slate-200 dark:border-slate-800">
         <div className="space-y-2">
@@ -140,34 +140,29 @@ export default async function CampaignDetailPage({
 
       {/* Analytics KPI Overview Cards */}
       {analytics?.totals && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <MetricCard 
-            title="Të Hyrat Bruto" 
-            value={formatCurrency(analytics.totals.grossRevenue)} 
-            icon={<DollarSign className="w-4 h-4 text-emerald-600" />} 
-          />
-          <MetricCard 
-            title="Të Hyrat Neto" 
-            value={formatCurrency(analytics.totals.netRevenue)} 
-            icon={<TrendingUp className="w-4 h-4 text-blue-600" />} 
-          />
-          <MetricCard 
-            title="Fitimi Bruto" 
-            value={formatCurrency(analytics.totals.grossProfit)} 
-            icon={<Percent className="w-4 h-4 text-indigo-600" />} 
-          />
-          <MetricCard 
-            title="Kostoja Totale" 
-            value={formatCurrency(analytics.totals.totalCost)} 
-            icon={<DollarSign className="w-4 h-4 text-rose-600" />} 
-          />
-          <MetricCard 
-            title="Njësi të Shitura" 
-            value={analytics.totals.totalUnitsSold.toLocaleString('sq-AL')} 
-            icon={<PackageCheck className="w-4 h-4 text-amber-600" />} 
-          />
-        </div>
-      )}
+  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+    <MetricCard 
+      title="Qarkullimi (€)" 
+      value={formatCurrency(analytics.totals.grossRevenue)} 
+      icon={<DollarSign className="w-4 h-4 text-emerald-600" />} 
+    />
+    <MetricCard 
+      title="Gross Margin" 
+      value={`${analytics.totals.grossMarginPct ?? 0}%`} 
+      icon={<Percent className="w-4 h-4 text-emerald-500" />} 
+    />
+    <MetricCard 
+      title="Markdown (%)" 
+      value={`${analytics.totals.markdownPct ?? 0}%`} 
+      icon={<Percent className="w-4 h-4 text-amber-500" />} 
+    />
+    <MetricCard 
+      title="Njësi të Shitura" 
+      value={analytics.totals.totalUnitsSold.toLocaleString('sq-AL')} 
+      icon={<PackageCheck className="w-4 h-4 text-slate-600" />} 
+    />
+  </div>
+)}
 
       {/* Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -186,7 +181,43 @@ export default async function CampaignDetailPage({
               </p>
             </div>
           )}
-
+           {/* Store Performance Grid */}
+          {analytics?.storeBreakdown && analytics.storeBreakdown.length > 0 && (
+            <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
+                <Building2 className="w-5 h-5 text-slate-500" />
+                Performanca sipas Dyqaneve
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {analytics.storeBreakdown.map((store) => (
+                  <div key={store.OrgId} className="p-4 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 space-y-2">
+                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      <Store className="w-4 h-4 text-slate-400" />
+                      {store.OrgName}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                      <div>
+                        <span className="text-slate-400 block">Qarkullimi</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(store.grossRevenue)}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Gross Margin (%)</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{store.grossMarginPct ?? 0}%</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Sasia E Shitur</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{store.unitsSold} njësi</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block">Mark Down (%)</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{store.markdownPct ?? 0}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Top Products Table */}
           {analytics?.topProducts && analytics.topProducts.length > 0 && (
             <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm space-y-4">
@@ -201,7 +232,7 @@ export default async function CampaignDetailPage({
                       <th className="px-4 py-3">Artikulli</th>
                       <th className="px-4 py-3">Kategoria</th>
                       <th className="px-4 py-3 text-right">Sasia</th>
-                      <th className="px-4 py-3 text-right">Të Hyrat Bruto</th>
+                      <th className="px-4 py-3 text-right">Qarkullimi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -223,45 +254,6 @@ export default async function CampaignDetailPage({
               </div>
             </div>
           )}
-
-          {/* Store Performance Grid */}
-          {analytics?.storeBreakdown && analytics.storeBreakdown.length > 0 && (
-            <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
-                <Building2 className="w-5 h-5 text-slate-500" />
-                Performanca sipas Dyqaneve
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {analytics.storeBreakdown.map((store) => (
-                  <div key={store.OrgId} className="p-4 rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 space-y-2">
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                      <Store className="w-4 h-4 text-slate-400" />
-                      {store.OrgName}
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800">
-                      <div>
-                        <span className="text-slate-400 block">Të Hyrat Bruto</span>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(store.grossRevenue)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block">Fitimi Bruto</span>
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(store.grossProfit)}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block">Sasia E Shitur</span>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{store.unitsSold} njësi</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block">Të Hyrat Neto</span>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(store.netRevenue)}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Campaign Blueprint Content */}
           <div className="p-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 space-y-4 shadow-sm">
             <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-3">
