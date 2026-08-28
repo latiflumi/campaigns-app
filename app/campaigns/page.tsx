@@ -1,9 +1,9 @@
 // app/campaigns/page.tsx
 import CampaignList from "./CampaignList"
-import { prisma } from "../lib/prisma"
+import { prisma } from "@/app/lib/prisma";
 import { fetchStoresAction } from "./actions";
 import { fetchChannelsAction } from "./actions";
-import { getCampaignRevenue } from "../api/erp/actions"
+import { getCampaignRevenue } from "../api/erp/actions";
 
 export default async function CampaignsPage() {
   const [campaigns, stores, channels] = await Promise.all([

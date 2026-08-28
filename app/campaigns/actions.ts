@@ -3,7 +3,7 @@
 import { prisma } from "../lib/prisma";
 import { revalidatePath } from "next/cache"
 import { z } from "zod";
-import { Campaign, CampaignType, CampaignStatus } from "../types/CampaignTypes";
+import { Campaign, CampaignType, CampaignStatus } from "../types/CampaignTypes"
 
 // Base Zod Schema matching your Prisma model constraints
 const BaseCampaignSchema = z.object({

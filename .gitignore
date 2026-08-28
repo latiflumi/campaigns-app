@@ -41,6 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
-
+*seed.ts
+*_seed.ts
 *.yml
 

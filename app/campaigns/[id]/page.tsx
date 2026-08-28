@@ -286,7 +286,7 @@ export default async function CampaignDetailPage({
                 {analytics.topCategories.map((cat, idx) => (
                   <div key={idx} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-slate-900 last:border-none">
                     <div>
-                      <div className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[150px]">
+                      <div className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[200px]">
                         {cat.CategoryName}
                       </div>
                       <div className="text-slate-400 text-[11px]">{cat.unitsSold} njësi të shitura</div>
