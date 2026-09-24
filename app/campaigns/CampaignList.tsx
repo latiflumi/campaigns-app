@@ -350,8 +350,8 @@ export default function CampaignList({
                       Kohëzgjatja:
                     </span>
                     <span className="font-medium text-slate-700 dark:text-slate-300">
-                      {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-GB') : 'N/A'} –{' '}
-                      {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB') : 'N/A'}
+                      {campaign.startDate ? new Date(campaign.startDate).toLocaleDateString('en-GB', { timeZone: 'UTC' }) : 'N/A'} –{' '}
+                      {campaign.endDate ? new Date(campaign.endDate).toLocaleDateString('en-GB', { timeZone: 'UTC' }) : 'N/A'}
                     </span>
                   </div>
 

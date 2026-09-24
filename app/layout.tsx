@@ -25,7 +25,7 @@ export default async function RootLayout({
 
 
   return (
-    <html lang="en" className={roboto.variable}>
+    <html lang="en" className={roboto.variable} suppressHydrationWarning>
       <body className="font-sans antialiased bg-slate-50 text-slate-900 min-h-screen">
         {/* Render Header ONLY when authenticated and not on /login */}
         {!isLoginPage && session && (
