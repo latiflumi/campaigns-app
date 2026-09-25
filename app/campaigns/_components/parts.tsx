@@ -211,24 +211,39 @@ export function BudgetText({ budget }: { budget: number | null }) {
 const actionBtn =
   "inline-flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 cursor-pointer"
 
-export function RowActions({ id, name, onDelete }: { id: string; name: string; onDelete: () => void }) {
+export function RowActions({
+  id,
+  name,
+  onDelete,
+  canManage,
+}: {
+  id: string
+  name: string
+  onDelete: () => void
+  /** Admins also get Edit and Delete; viewers only View */
+  canManage: boolean
+}) {
   return (
     <div className="flex items-center gap-0.5">
       <Link href={`/campaigns/${id}`} className={actionBtn} aria-label={`View ${name}`} title="View">
         <Eye className="size-4" />
       </Link>
-      <Link href={`/campaigns/${id}/edit`} className={actionBtn} aria-label={`Edit ${name}`} title="Edit">
-        <Pencil className="size-4" />
-      </Link>
-      <button
-        type="button"
-        onClick={onDelete}
-        className={cx(actionBtn, "hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400")}
-        aria-label={`Delete ${name}`}
-        title="Delete"
-      >
-        <Trash2 className="size-4" />
-      </button>
+      {canManage && (
+        <>
+          <Link href={`/campaigns/${id}/edit`} className={actionBtn} aria-label={`Edit ${name}`} title="Edit">
+            <Pencil className="size-4" />
+          </Link>
+          <button
+            type="button"
+            onClick={onDelete}
+            className={cx(actionBtn, "hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400")}
+            aria-label={`Delete ${name}`}
+            title="Delete"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </>
+      )}
     </div>
   )
 }

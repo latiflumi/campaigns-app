@@ -43,6 +43,7 @@ interface ViewProps {
   totalStores: number
   maxRevenue: number
   onDelete: (c: CampaignListItem) => void
+  canManage: boolean
 }
 
 const itemMotion = {
@@ -98,7 +99,7 @@ function TimelineBlock({ row, now }: { row: ViewRow; now: number }) {
 const listCols =
   "lg:grid-cols-[minmax(0,2.4fr)_7.5rem_minmax(0,1.7fr)_minmax(0,1fr)_9.5rem_6.5rem]"
 
-export function ListView({ sections, now, query, totalStores, maxRevenue, onDelete }: ViewProps) {
+export function ListView({ sections, now, query, totalStores, maxRevenue, onDelete, canManage }: ViewProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
       <div
@@ -176,7 +177,7 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
                     </div>
 
                     <div className="relative z-10 col-span-2 flex justify-end transition-opacity lg:col-span-1 lg:opacity-0 lg:group-focus-within:opacity-100 lg:group-hover:opacity-100">
-                      <RowActions id={c.id} name={c.name} onDelete={() => onDelete(c)} />
+                      <RowActions id={c.id} name={c.name} onDelete={() => onDelete(c)} canManage={canManage} />
                     </div>
                   </motion.li>
                 )
@@ -191,7 +192,7 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
 
 // ---------- grid ----------
 
-export function GridView({ sections, now, query, totalStores, maxRevenue, onDelete }: ViewProps) {
+export function GridView({ sections, now, query, totalStores, maxRevenue, onDelete, canManage }: ViewProps) {
   return (
     <div className="space-y-8">
       {sections.map((section) => (
@@ -251,7 +252,7 @@ export function GridView({ sections, now, query, totalStores, maxRevenue, onDele
 
                     <div className="relative z-10 mt-auto flex items-center justify-between pt-4">
                       <span className="font-mono text-[10px] text-neutral-400 dark:text-neutral-600">#{c.id.slice(-8)}</span>
-                      <RowActions id={c.id} name={c.name} onDelete={() => onDelete(c)} />
+                      <RowActions id={c.id} name={c.name} onDelete={() => onDelete(c)} canManage={canManage} />
                     </div>
                   </motion.li>
                 )

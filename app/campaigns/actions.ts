@@ -4,9 +4,11 @@ import { prisma } from "../lib/prisma";
 import { revalidatePath } from "next/cache"
 import { z } from "zod";
 import { requireSession } from "../lib/session";
+import { isAdmin, FORBIDDEN_MESSAGE } from "../lib/roles";
 
 // Server actions are public POST endpoints, so each one checks the session itself.
 // requireSession() redirects to /login; it stays outside try/catch because redirect() throws.
+// Writes (create / update / delete) additionally require the ADMIN role; viewers can only read.
 
 // Base Zod Schema matching your Prisma model constraints
 const BaseCampaignSchema = z.object({
@@ -39,7 +41,8 @@ const UpdateCampaignSchema = BaseCampaignSchema.extend({
 export type CampaignFormInput = z.input<typeof BaseCampaignSchema>
 
 export async function createCampaign(formData: CampaignFormInput) {
-  await requireSession()
+  const session = await requireSession()
+  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
   try {
     // Validate form inputs (without requiring id)
     const validatedFields = BaseCampaignSchema.parse(formData);
@@ -61,7 +64,8 @@ export async function createCampaign(formData: CampaignFormInput) {
 }
 
 export async function updateCampaign(campaignId: string, formData: CampaignFormInput) {
-  await requireSession()
+  const session = await requireSession()
+  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
   try {
     const validatedFields = UpdateCampaignSchema.parse({
       ...formData,
@@ -86,7 +90,8 @@ export async function updateCampaign(campaignId: string, formData: CampaignFormI
 }
 
 export async function deleteCampaign(campaignId: string) {
-  await requireSession()
+  const session = await requireSession()
+  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
   try {
     await prisma.campaign.delete({
       where: { id: campaignId },

@@ -1,5 +1,6 @@
 // app/templates/page.tsx
 import Link from 'next/link'
+import { canManageCampaigns } from "../lib/roles"
 
 // TypeScript Interfaces
 export type TemplateCategory = 'Email' | 'Social' | 'Push' | 'Audience'
@@ -79,7 +80,9 @@ const TEMPLATES_DATA: CampaignTemplate[] = [
   },
 ]
 
-export default function TemplatesPage() {
+export default async function TemplatesPage() {
+  const canManage = await canManageCampaigns()
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header & Primary Action */}
@@ -205,12 +208,14 @@ export default function TemplatesPage() {
                 </span>
               </div>
 
-              <Link
-                href={`/campaigns/new?templateId=${template.id}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-lg transition-colors"
-              >
-                Use Template →
-              </Link>
+              {canManage && (
+                <Link
+                  href={`/campaigns/new?templateId=${template.id}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-lg transition-colors"
+                >
+                  Use Template →
+                </Link>
+              )}
             </div>
           </div>
         ))}

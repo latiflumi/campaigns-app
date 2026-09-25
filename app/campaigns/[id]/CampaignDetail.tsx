@@ -67,6 +67,8 @@ interface CampaignDetailProps {
   analytics: CampaignDetailedAnalytics | null
   gap: AnalyticsGap | null
   silentStores: string[]
+  /** ADMIN only: shows Ndrysho, Fshi and the "complete the campaign" link */
+  canManage: boolean
   totalStores: number
   /** Server render time (ISO); keeps time-based UI identical during hydration. */
   now: string
@@ -96,7 +98,7 @@ function elapsedDays(t: Timeline) {
   }
 }
 
-export default function CampaignDetail({ campaign, analytics, gap, silentStores, totalStores, now: serverNow }: CampaignDetailProps) {
+export default function CampaignDetail({ campaign, analytics, gap, silentStores, canManage, totalStores, now: serverNow }: CampaignDetailProps) {
   const now = useNow(serverNow)
   const router = useRouter()
   const timeline = getTimeline(campaign, now)
@@ -158,23 +160,25 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href={`/campaigns/${campaign.id}/edit`}
-                className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 shadow-xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
-              >
-                <Pencil className="size-4" />
-                Ndrysho
-              </Link>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-xs transition-colors hover:bg-red-50 dark:border-red-500/30 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-500/10"
-              >
-                <Trash2 className="size-4" />
-                Fshi
-              </button>
-            </div>
+            {canManage && (
+              <div className="flex shrink-0 items-center gap-2">
+                <Link
+                  href={`/campaigns/${campaign.id}/edit`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 shadow-xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                >
+                  <Pencil className="size-4" />
+                  Ndrysho
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-xs transition-colors hover:bg-red-50 dark:border-red-500/30 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-500/10"
+                >
+                  <Trash2 className="size-4" />
+                  Fshi
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -205,7 +209,7 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
                   </div>
                 </>
               ) : (
-                <GapNotice gap={gap ?? "unavailable"} campaign={campaign} />
+                <GapNotice gap={gap ?? "unavailable"} campaign={campaign} canManage={canManage} />
               )}
             </div>
 
@@ -346,7 +350,7 @@ const GAPS: Record<AnalyticsGap, { icon: LucideIcon; title: string; body: string
   },
 }
 
-function GapNotice({ gap, campaign }: { gap: AnalyticsGap; campaign: CampaignDetailData }) {
+function GapNotice({ gap, campaign, canManage }: { gap: AnalyticsGap; campaign: CampaignDetailData; canManage: boolean }) {
   const g = GAPS[gap]
   const Icon = g.icon
   return (
@@ -356,7 +360,7 @@ function GapNotice({ gap, campaign }: { gap: AnalyticsGap; campaign: CampaignDet
       </span>
       <h2 className="mt-4 text-lg font-semibold text-neutral-900 dark:text-neutral-100">{g.title}</h2>
       <p className="mt-1 max-w-sm text-sm text-neutral-500 dark:text-neutral-400">{g.body}</p>
-      {g.edit && (
+      {g.edit && canManage && (
         <Link
           href={`/campaigns/${campaign.id}/edit`}
           className="mt-4 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-600 dark:text-brand-400"

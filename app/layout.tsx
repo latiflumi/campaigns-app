@@ -36,11 +36,12 @@ export default async function RootLayout({
   const me = showHeader
     ? await prisma.user.findUnique({
         where: { userId: session.userId },
-        select: { fullName: true, avatarUpdatedAt: true },
+        select: { fullName: true, avatarUpdatedAt: true, role: true },
       })
     : null;
   const displayName = me?.fullName || session?.userName || '';
   const avatarSrc = session && me?.avatarUpdatedAt ? avatarUrl(session.userId, me.avatarUpdatedAt) : null;
+  const canManage = me?.role === 'ADMIN'; // viewers don't see "+ New"
 
   return (
     <html lang="en" className={roboto.variable} data-theme={theme} suppressHydrationWarning>
@@ -62,12 +63,14 @@ export default async function RootLayout({
                   </nav>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Link
-                    href="/campaigns/new"
-                    className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-md transition-colors"
-                  >
-                    + New
-                  </Link>
+                  {canManage && (
+                    <Link
+                      href="/campaigns/new"
+                      className="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-md transition-colors"
+                    >
+                      + New
+                    </Link>
+                  )}
                   <ThemeToggle className="text-neutral-300 hover:bg-neutral-800 hover:text-white" />
                   <UserMenu name={displayName} userName={session.userName} avatarSrc={avatarSrc} />
                 </div>

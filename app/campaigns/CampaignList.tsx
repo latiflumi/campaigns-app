@@ -46,6 +46,8 @@ interface CampaignListProps {
   /** Server render time (ISO); keeps time-based UI identical during hydration. */
   now: string
   initialView: ViewMode
+  /** ADMIN only: shows New campaign, Edit and Delete */
+  canManage: boolean
 }
 
 /** Starts at the server's clock so hydration matches, then ticks every minute. */
@@ -67,7 +69,7 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 const PHASE_RANK = { live: 0, open: 1, upcoming: 2, ended: 3, undated: 4 } as const
 
-export default function CampaignList({ campaigns, stores, channels, now: serverNow, initialView }: CampaignListProps) {
+export default function CampaignList({ campaigns, stores, channels, now: serverNow, initialView, canManage }: CampaignListProps) {
   const now = useNow(serverNow)
 
   const [query, setQuery] = useState("")
@@ -291,7 +293,7 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
 
   // ---------- render ----------
 
-  const viewProps = { sections, now, query, totalStores, maxRevenue, onDelete: handleDelete }
+  const viewProps = { sections, now, query, totalStores, maxRevenue, onDelete: handleDelete, canManage }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -317,17 +319,19 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
               <span>{rows.length} total</span>
             </p>
           </div>
-          <Link
-            href="/campaigns/new"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 hover:shadow-md active:scale-[0.98] dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400"
-          >
-            <Plus className="size-4" />
-            New campaign
-          </Link>
+          {canManage && (
+            <Link
+              href="/campaigns/new"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 hover:shadow-md active:scale-[0.98] dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400"
+            >
+              <Plus className="size-4" />
+              New campaign
+            </Link>
+          )}
         </div>
 
         {campaigns.length === 0 ? (
-          <EmptyState />
+          <EmptyState canManage={canManage} />
         ) : (
           <>
             {/* Stat tiles */}
@@ -685,7 +689,7 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
   )
 }
 
-function EmptyState() {
+function EmptyState({ canManage }: { canManage: boolean }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white px-6 py-20 text-center shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-24 mx-auto size-72 rounded-full bg-brand-400/10 blur-3xl" />
@@ -694,15 +698,19 @@ function EmptyState() {
       </span>
       <h2 className="relative mt-5 text-lg font-semibold text-neutral-900 dark:text-neutral-100">No campaigns yet</h2>
       <p className="relative mx-auto mt-1 max-w-sm text-sm text-neutral-500 dark:text-neutral-400">
-        Create your first campaign to start tracking its timeline, stores and revenue here.
+        {canManage
+          ? "Create your first campaign to start tracking its timeline, stores and revenue here."
+          : "Campaigns will show up here once an administrator creates them."}
       </p>
-      <Link
-        href="/campaigns/new"
-        className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 dark:bg-brand-500 dark:text-white"
-      >
-        <Plus className="size-4" />
-        New campaign
-      </Link>
+      {canManage && (
+        <Link
+          href="/campaigns/new"
+          className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 dark:bg-brand-500 dark:text-white"
+        >
+          <Plus className="size-4" />
+          New campaign
+        </Link>
+      )}
     </div>
   )
 }

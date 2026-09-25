@@ -5,6 +5,7 @@ import { getCampaignDetailedAnalytics, type CampaignDetailedAnalytics } from "..
 import { getCampaignById, fetchStoresAction } from "../actions"
 import { syncCampaignStatuses } from "@/app/lib/campaign-status"
 import { requireSession } from "@/app/lib/session"
+import { canManageCampaigns } from "@/app/lib/roles"
 import CampaignDetail, { type CampaignDetailData, type AnalyticsGap } from "./CampaignDetail"
 
 export const dynamic = "force-dynamic"
@@ -89,6 +90,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
       analytics={analytics}
       gap={gap}
       silentStores={silentStores}
+      canManage={await canManageCampaigns()}
       totalStores={stores.length}
       now={now.toISOString()}
     />

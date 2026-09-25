@@ -1,5 +1,6 @@
 // app/page.tsx
 import Link from 'next/link'
+import { canManageCampaigns } from "./lib/roles"
 
 // TypeScript interface for campaign items
 interface Campaign {
@@ -67,7 +68,9 @@ const MOCK_CAMPAIGNS: Campaign[] = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  const canManage = await canManageCampaigns()
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header Section */}
@@ -80,12 +83,14 @@ export default function HomePage() {
             Monitor active marketing campaigns and track key metrics.
           </p>
         </div>
-        <Link
-          href="/campaigns/new"
-          className="inline-flex items-center justify-center rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 transition-colors"
-        >
-          + Create Campaign
-        </Link>
+        {canManage && (
+          <Link
+            href="/campaigns/new"
+            className="inline-flex items-center justify-center rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 transition-colors"
+          >
+            + Create Campaign
+          </Link>
+        )}
       </div>
 
       {/* KPI Stats Cards */}

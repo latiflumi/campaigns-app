@@ -47,3 +47,6 @@ next-env.d.ts
 
 # database dumps
 *.dump
+
+# local deployment notes
+DEPLOY.md

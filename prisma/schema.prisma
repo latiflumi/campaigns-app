@@ -52,10 +52,17 @@ model Campaign {
   @@map("campaigns")
 }
 
+/// ADMIN can create, edit and delete campaigns; VIEWER can only view them.
+enum Role {
+  ADMIN
+  VIEWER
+}
+
 model User {
   userId   String @id @default(uuid()) @db.Uuid
   userName String @unique
   password String
+  role     Role   @default(VIEWER)
 
   // Profile (all optional, edited on /profile)
   fullName String?

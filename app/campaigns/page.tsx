@@ -4,6 +4,7 @@ import CampaignList from "./CampaignList"
 import { prisma } from "@/app/lib/prisma"
 import { syncCampaignStatuses } from "@/app/lib/campaign-status"
 import { requireSession } from "@/app/lib/session"
+import { canManageCampaigns } from "@/app/lib/roles"
 import { fetchStoresAction, fetchChannelsAction } from "./actions"
 import { getCampaignRevenue } from "../api/erp/actions"
 import { VIEW_COOKIE, type CampaignListItem, type ViewMode } from "./_components/campaign-utils"
@@ -92,6 +93,7 @@ export default async function CampaignsPage() {
       channels={channels.map((c) => c.type)}
       now={now.toISOString()}
       initialView={initialView}
+      canManage={await canManageCampaigns()}
     />
   )
 }
