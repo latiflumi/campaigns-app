@@ -1,84 +1,56 @@
-import { SignJWT, jwtVerify } from "jose";
+import "server-only"
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import {
+    ACCESS_COOKIE,
+    REFRESH_COOKIE,
+    ACCESS_MAX_AGE,
+    REFRESH_MAX_AGE,
+    cookieOptions,
+    signTokens,
+    verifyAccessToken,
+    verifyRefreshToken,
+    type TokenPayLoad,
+} from "./tokens";
 
-const ACCESS_SECRET = new TextEncoder().encode(process.env.ACCESS_TOKEN_SECRET)
-const REFRESH_TOKEN = new TextEncoder().encode(process.env.ACCESS_REFRESH_SECRET)
-
-export interface TokenPayLoad {
-    userId: string;
-    userName: string;
-}
+export type { TokenPayLoad }
 
 export async function setAuthCookies(payload: TokenPayLoad) {
     const cookieStore = await cookies()
-
-    const accessToken = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('15m')
-    .sign(ACCESS_SECRET)
-
-    // Long lived Refresh Token (7 days)
-
-    const refreshToken = await new SignJWT({ ...payload })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(REFRESH_TOKEN)
-
-    cookieStore.set('access_token', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 15 * 60
-    });
-
-      cookieStore.set('refresh_token', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60
-    });
+    const { accessToken, refreshToken } = await signTokens(payload)
+    cookieStore.set(ACCESS_COOKIE, accessToken, cookieOptions(ACCESS_MAX_AGE))
+    cookieStore.set(REFRESH_COOKIE, refreshToken, cookieOptions(REFRESH_MAX_AGE))
 }
 
 export async function deleteAuthCookies() {
   const cookieStore = await cookies();
-  cookieStore.delete('access_token');
-  cookieStore.delete('refresh_token');
+  cookieStore.delete(ACCESS_COOKIE);
+  cookieStore.delete(REFRESH_COOKIE);
 }
 
 /**
- * Validates session. If access token is expired, checks refresh token 
- * and automatically rotates tokens seamlessly.
+ * Returns the signed-in user, or null. Token rotation normally happens in
+ * middleware.ts before the request gets here; the refresh fallback below only
+ * matters for requests the middleware doesn't cover (e.g. /api routes).
+ * Cookie writes are best-effort because Server Components can't set cookies.
  */
-
 export async function getSession(): Promise<TokenPayLoad | null>{
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get('access_token')?.value;
-    const refreshToken = cookieStore.get('refresh_token')?.value;
 
-    if(accessToken){
-        try {
-            const { payload } = await jwtVerify(accessToken, ACCESS_SECRET)
-            return { userId: payload.userId as string, userName: payload.userName as string}
-        } catch{
+    const fromAccess = await verifyAccessToken(cookieStore.get(ACCESS_COOKIE)?.value)
+    if (fromAccess) return fromAccess
 
-        }
-    }
-
-    if(refreshToken) {
-        try {
-            const { payload } = await jwtVerify(refreshToken, REFRESH_TOKEN);
-            const user: TokenPayLoad = {userId: payload.userId as string, userName: payload.userName as string}
-
-            await setAuthCookies(user)
-            return user
-        } catch {
-            await deleteAuthCookies()
-            return null;
-        }
+    const fromRefresh = await verifyRefreshToken(cookieStore.get(REFRESH_COOKIE)?.value)
+    if (fromRefresh) {
+        try { await setAuthCookies(fromRefresh) } catch { /* rendering: can't write cookies */ }
+        return fromRefresh
     }
     return null;
+}
+
+/** For pages and server actions: the signed-in user, or a redirect to /login. */
+export async function requireSession(): Promise<TokenPayLoad> {
+    const session = await getSession()
+    if (!session) redirect('/login')
+    return session
 }

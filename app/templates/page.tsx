@@ -85,36 +85,36 @@ export default function TemplatesPage() {
       {/* Header & Primary Action */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
             Campaign Templates
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-neutral-500 text-sm mt-1">
             Standardize your messaging, reuse high-converting blueprints, and save audience segments.
           </p>
         </div>
-        <button className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors">
+        <button className="inline-flex items-center justify-center rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 transition-colors">
           + Create Template
         </button>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-4">
+      <div className="bg-white border border-neutral-200 rounded-xl p-4 shadow-xs space-y-4">
         
         {/* Category Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-3 overflow-x-auto text-sm font-medium">
-          <button className="px-3 py-1.5 rounded-md bg-slate-900 text-white text-xs font-semibold">
+        <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 overflow-x-auto text-sm font-medium">
+          <button className="px-3 py-1.5 rounded-md bg-neutral-900 text-white text-xs font-semibold">
             All Templates ({TEMPLATES_DATA.length})
           </button>
-          <button className="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 text-xs transition-colors">
+          <button className="px-3 py-1.5 rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 text-xs transition-colors">
             Email Blueprints (3)
           </button>
-          <button className="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 text-xs transition-colors">
+          <button className="px-3 py-1.5 rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 text-xs transition-colors">
             Social Copy (1)
           </button>
-          <button className="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 text-xs transition-colors">
+          <button className="px-3 py-1.5 rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 text-xs transition-colors">
             Push Alerts (1)
           </button>
-          <button className="px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 hover:text-slate-900 text-xs transition-colors">
+          <button className="px-3 py-1.5 rounded-md text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 text-xs transition-colors">
             Audience Segments (1)
           </button>
         </div>
@@ -125,15 +125,15 @@ export default function TemplatesPage() {
             <input
               type="text"
               placeholder="Search templates by title, tag, or description..."
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50/50"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-neutral-50/50"
             />
-            <span className="absolute left-3 top-2.5 text-slate-400 text-sm">
+            <span className="absolute left-3 top-2.5 text-neutral-400 text-sm">
               🔍
             </span>
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select className="w-full sm:w-auto px-3 py-2 text-sm border border-slate-300 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select className="w-full sm:w-auto px-3 py-2 text-sm border border-neutral-300 rounded-lg bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-brand-500">
               <option value="most_used">Sort: Most Used</option>
               <option value="highest_cvr">Sort: Highest Avg CVR</option>
               <option value="recent">Sort: Recently Updated</option>
@@ -148,7 +148,7 @@ export default function TemplatesPage() {
         {TEMPLATES_DATA.map((template) => (
           <div
             key={template.id}
-            className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all group"
+            className="bg-white border border-neutral-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:border-neutral-300 transition-all group"
           >
             <div className="space-y-3">
               {/* Top Badge & Category */}
@@ -156,7 +156,7 @@ export default function TemplatesPage() {
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                     template.category === 'Email'
-                      ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20'
+                      ? 'bg-brand-50 text-brand-700 ring-1 ring-brand-600/20'
                       : template.category === 'Social'
                       ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-600/20'
                       : template.category === 'Audience'
@@ -166,17 +166,17 @@ export default function TemplatesPage() {
                 >
                   {template.category}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-neutral-400">
                   Used {template.usageCount} times
                 </span>
               </div>
 
               {/* Title & Description */}
               <div>
-                <h2 className="text-base font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                <h2 className="text-base font-semibold text-neutral-900 group-hover:text-brand-700 transition-colors">
                   {template.title}
                 </h2>
-                <p className="text-xs text-slate-500 mt-1.5 line-clamp-3 leading-relaxed">
+                <p className="text-xs text-neutral-500 mt-1.5 line-clamp-3 leading-relaxed">
                   {template.description}
                 </p>
               </div>
@@ -186,7 +186,7 @@ export default function TemplatesPage() {
                 {template.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-[11px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded"
+                    className="text-[11px] font-medium bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded"
                   >
                     #{tag}
                   </span>
@@ -195,9 +195,9 @@ export default function TemplatesPage() {
             </div>
 
             {/* Card Footer Metrics & Use Button */}
-            <div className="pt-5 mt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-5 mt-4 border-t border-neutral-100 flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-slate-400 block uppercase font-medium">
+                <span className="text-[10px] text-neutral-400 block uppercase font-medium">
                   Avg. Conversion
                 </span>
                 <span className="text-sm font-bold text-emerald-600">
@@ -207,7 +207,7 @@ export default function TemplatesPage() {
 
               <Link
                 href={`/campaigns/new?templateId=${template.id}`}
-                className="inline-flex items-center gap-1 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-2 rounded-lg transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-lg transition-colors"
               >
                 Use Template →
               </Link>

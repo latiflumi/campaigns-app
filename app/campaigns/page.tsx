@@ -1,91 +1,97 @@
 // app/campaigns/page.tsx
+import { cookies } from "next/headers"
 import CampaignList from "./CampaignList"
-import { prisma } from "@/app/lib/prisma";
-import { fetchStoresAction } from "./actions";
-import { fetchChannelsAction } from "./actions";
-import { getCampaignRevenue } from "../api/erp/actions";
+import { prisma } from "@/app/lib/prisma"
+import { syncCampaignStatuses } from "@/app/lib/campaign-status"
+import { requireSession } from "@/app/lib/session"
+import { fetchStoresAction, fetchChannelsAction } from "./actions"
+import { getCampaignRevenue } from "../api/erp/actions"
+import { VIEW_COOKIE, type CampaignListItem, type ViewMode } from "./_components/campaign-utils"
+
+const toDay = (d: Date | null) => (d ? d.toISOString().split("T")[0] : null)
+
+const parseBudget = (budget: string | null) => {
+  if (!budget) return null
+  const n = Number(budget.replace(",", "."))
+  return Number.isFinite(n) && n > 0 ? n : null
+}
 
 export default async function CampaignsPage() {
-  const [campaigns, stores, channels] = await Promise.all([
+  await requireSession()
+  const now = new Date()
+
+  // Sync statuses with the calendar before reading, so this render is current
+  await syncCampaignStatuses(now)
+
+  const [campaigns, stores, channels, cookieStore] = await Promise.all([
     prisma.campaign.findMany({ orderBy: { startDate: "desc" } }),
     fetchStoresAction(),
     fetchChannelsAction(),
-  ]);
+    cookies(),
+  ])
 
-  const now = new Date();
+  // Quick lookup: store name -> numeric ERP id
+  const storeNameToId = new Map(stores.map((s) => [s.name, s.id]))
 
-  await prisma.campaign.updateMany({
-    where: {
-      status: {
-        in: ['SCHEDULED', 'DRAFT'],
-      },
-      startDate: {
-        lte: now,
-      },
-    },
-    data: {
-      status: 'ACTIVE',
-    },
-  });
-
-  // Create a Quick Lookup Map: Store Name -> Integer ID
-  const storeNameToIdMap = new Map<string, number>(
-    stores.map((s) => [s.name, s.id])
-  );
-
-  const campaignsWithRevenue = await Promise.all(
+  const items: CampaignListItem[] = await Promise.all(
     campaigns.map(async (campaign) => {
-      // Safely resolve store values to integer ID strings
       const storeIds = campaign.participatingStores
-        .map((item: number | string | { id: number }) => {
-          if (typeof item === "number") return item.toString();
-          if (typeof item === "object" && item?.id) return item.id.toString();
-          // If the array contains store names, lookup their numeric ID
-          if (typeof item === "string") {
-            const foundId = storeNameToIdMap.get(item);
-            return foundId ? foundId.toString() : null;
-          }
-          return null;
-        })
-        .filter((id): id is string => id !== null);
+        .map((name) => storeNameToId.get(name)?.toString() ?? null)
+        .filter((id): id is string => id !== null)
 
-      const from = campaign.startDate
-        ? new Date(campaign.startDate).toISOString().split("T")[0]
-        : null;
+      const from = toDay(campaign.startDate)
+      const to = toDay(campaign.endDate)
 
-      const to = campaign.endDate
-        ? new Date(campaign.endDate).toISOString().split("T")[0]
-        : null;
+      let grossRevenue: number | null = null
+      let netRevenue: number | null = null
+      let grossProfit: number | null = null
+      let markdownAmount: number | null = null
+      let unitsSold: number | null = null
 
-      let grossRevenue: number | null = null;
-
-      // Only query if valid store IDs and dates exist
+      // Only query the ERP when there are resolvable stores and a full date range
       if (storeIds.length > 0 && from && to) {
         try {
-          const analytics = await getCampaignRevenue(storeIds, from, to);
-          grossRevenue = analytics?.grossRevenue ?? 0;
+          const summary = await getCampaignRevenue(storeIds, from, to)
+          grossRevenue = summary?.grossRevenue ?? 0
+          netRevenue = summary?.netRevenue ?? null
+          grossProfit = summary?.grossProfit ?? null
+          markdownAmount = summary?.markdownAmount ?? null
+          unitsSold = summary?.totalUnitsSold ?? null
         } catch (error) {
-          console.error(`⚠️ API failed for campaign ${campaign.id}:`, error);
-          // Leaves grossRevenue as null so UI can render a fallback state ("N/A" or "-")
-          grossRevenue = null;
+          // Leave the figures null so the UI renders its "no data" state
+          console.error(`⚠️ API failed for campaign ${campaign.id}:`, error)
         }
       }
 
       return {
-        ...campaign,
+        id: campaign.id,
+        name: campaign.name,
+        type: campaign.type,
+        status: campaign.status,
+        subject: campaign.subject,
+        participatingStores: campaign.participatingStores,
+        budget: parseBudget(campaign.budget),
+        startDate: campaign.startDate?.toISOString() ?? null,
+        endDate: campaign.endDate?.toISOString() ?? null,
+        updatedAt: campaign.updatedAt.toISOString(),
         grossRevenue,
-      };
+        netRevenue,
+        grossProfit,
+        markdownAmount,
+        unitsSold,
+      }
     })
-  );
+  )
 
-  const serializedCampaigns = JSON.parse(JSON.stringify(campaignsWithRevenue));
-  const serializedStores = JSON.parse(JSON.stringify(stores));
+  const initialView: ViewMode = cookieStore.get(VIEW_COOKIE)?.value === "grid" ? "grid" : "list"
 
   return (
     <CampaignList
-      initialCampaigns={serializedCampaigns}
-      stores={serializedStores}
-      channels={channels}
+      campaigns={items}
+      stores={stores}
+      channels={channels.map((c) => c.type)}
+      now={now.toISOString()}
+      initialView={initialView}
     />
-  );
+  )
 }

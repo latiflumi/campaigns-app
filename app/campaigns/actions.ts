@@ -3,7 +3,10 @@
 import { prisma } from "../lib/prisma";
 import { revalidatePath } from "next/cache"
 import { z } from "zod";
-import { Campaign, CampaignType, CampaignStatus } from "../types/CampaignTypes"
+import { requireSession } from "../lib/session";
+
+// Server actions are public POST endpoints, so each one checks the session itself.
+// requireSession() redirects to /login; it stays outside try/catch because redirect() throws.
 
 // Base Zod Schema matching your Prisma model constraints
 const BaseCampaignSchema = z.object({
@@ -32,17 +35,11 @@ const UpdateCampaignSchema = BaseCampaignSchema.extend({
   id: z.string(),
 })
 
-export async function createCampaign(formData: {
-  name: string
-  type: CampaignType
-  status: CampaignStatus
-  subject?: string | null
-  participatingStores?: string[]
-  budget?: string | null
-  content?: string | null
-  startDate?: string | Date | null
-  endDate?: string | Date | null
-}) {
+/** What the create/edit forms send: dates as "YYYY-MM-DD" strings (or Date), which the schema converts. */
+export type CampaignFormInput = z.input<typeof BaseCampaignSchema>
+
+export async function createCampaign(formData: CampaignFormInput) {
+  await requireSession()
   try {
     // Validate form inputs (without requiring id)
     const validatedFields = BaseCampaignSchema.parse(formData);
@@ -63,7 +60,8 @@ export async function createCampaign(formData: {
   }
 }
 
-export async function updateCampaign(campaignId: string, formData: Partial<Campaign>) {
+export async function updateCampaign(campaignId: string, formData: CampaignFormInput) {
+  await requireSession()
   try {
     const validatedFields = UpdateCampaignSchema.parse({
       ...formData,
@@ -88,6 +86,7 @@ export async function updateCampaign(campaignId: string, formData: Partial<Campa
 }
 
 export async function deleteCampaign(campaignId: string) {
+  await requireSession()
   try {
     await prisma.campaign.delete({
       where: { id: campaignId },
@@ -95,11 +94,13 @@ export async function deleteCampaign(campaignId: string) {
     revalidatePath("/campaigns");
     return { success: true };
   } catch (error) {
+    console.error("Database Error (delete):", error);
     return { success: false, error: "Gabim gjatë fshirjes së kampanjës" };
   }
 }
 
 export async function fetchStoresAction() {
+  await requireSession()
   return await prisma.store.findMany({
     select: {
       id: true,
@@ -112,6 +113,7 @@ export async function fetchStoresAction() {
 }
 
 export async function fetchChannelsAction() {
+  await requireSession()
   return await prisma.campaign.findMany({
     distinct: ['type'],
     select: {
@@ -124,6 +126,7 @@ export async function fetchChannelsAction() {
 }
 
 export async function getCampaignById(id: string) {
+  await requireSession()
   return await prisma.campaign.findUnique({
     where: { id },
     select: {

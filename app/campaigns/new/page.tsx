@@ -139,18 +139,18 @@ const handleSubmit = async (e: React.FormEvent) => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-5">
+      <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
             Create New Campaign
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
             Configure targeting, budget, participating stores, and messaging.
           </p>
         </div>
         <Link
           href="/campaigns"
-          className="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-lg transition-colors"
+          className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-3 py-2 rounded-lg transition-colors"
         >
           Cancel & Exit
         </Link>
@@ -168,10 +168,10 @@ const handleSubmit = async (e: React.FormEvent) => {
             <li key={step.id} className="flex flex-col">
               <div
                 className={`h-1.5 w-full rounded-full transition-colors ${
-                  currentStep >= step.id ? 'bg-blue-600' : 'bg-slate-200'
+                  currentStep >= step.id ? 'bg-brand-700' : 'bg-neutral-200 dark:bg-neutral-800'
                 }`}
               />
-              <span className="mt-2 text-xs font-semibold text-slate-700 hidden sm:inline">
+              <span className="mt-2 text-xs font-semibold text-neutral-700 dark:text-neutral-300 hidden sm:inline">
                 {step.id}. {step.title}
               </span>
             </li>
@@ -180,17 +180,17 @@ const handleSubmit = async (e: React.FormEvent) => {
       </nav>
 
       {/* Form Steps Container */}
-      <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-xl p-6 shadow-xs space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl p-6 shadow-xs space-y-6">
         
         {/* STEP 1: Basic Campaign Details */}
         {currentStep === 1 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               Step 1: Campaign Setup
             </h2>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                 Campaign Name *
               </label>
               <input
@@ -200,20 +200,20 @@ const handleSubmit = async (e: React.FormEvent) => {
                 onChange={handleInputChange}
                 placeholder="e.g. Autumn Product Launch Blitz"
                 required
-                className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
+                className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   Marketing Channel *
                 </label>
                 <select
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="STORE">Ne dyqane</option>
                   <option value="ECOMMERCE">Ecommerce</option>
@@ -223,7 +223,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   Subject Line / Tagline
                 </label>
                 <input
@@ -232,7 +232,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   value={formData.subject}
                   onChange={handleInputChange}
                   placeholder="p.sh 50% zbritje ne te gjithe artikujt..."
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
                 />
               </div>
             </div>
@@ -242,17 +242,17 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* STEP 2: Audience, Stores & Budgeting */}
         {currentStep === 2 && (
           <div className="space-y-5">
-            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               Step 2: Audience, Stores & Budget
             </h2>
 
             {/* Participating Stores Selector */}
             {requiresStoreSelection && (
               <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
                 Participating Retail Locations ({formData.participatingStores.length} Selected)
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-neutral-50 dark:bg-neutral-800/40 p-3 rounded-lg border border-neutral-200 dark:border-neutral-800">
                 {stores.map((store) => {
                   const isSelected = formData.participatingStores.includes(store.name)
                   return (
@@ -262,16 +262,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                       onClick={() => handleStoreToggle(store.name)}
                       className={`flex items-center justify-between px-3 py-2 text-xs font-medium rounded-md border transition-all text-left ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-500 text-blue-900 font-semibold'
-                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                          ? 'bg-brand-50 dark:bg-brand-500/10 border-brand-500 text-brand-900 dark:text-brand-200 font-semibold'
+                          : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-600'
                       }`}
                     >
                       <span>{store.name}</span>
                       <span
                         className={`h-4 w-4 rounded flex items-center justify-center text-[10px] font-bold ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-slate-300 bg-slate-100 text-transparent'
+                            ? 'bg-brand-700 text-white'
+                            : 'border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 text-transparent'
                         }`}
                       >
                         ✓
@@ -284,7 +284,7 @@ const handleSubmit = async (e: React.FormEvent) => {
              ) }
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   Total Allocated Budget ($)
                 </label>
                 <input
@@ -293,19 +293,19 @@ const handleSubmit = async (e: React.FormEvent) => {
                   value={formData.budget}
                   onChange={handleInputChange}
                   placeholder="5000"
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   Status
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 >
                   <option value="DRAFT">Draft</option>
                   <option value="SCHEDULED">Scheduled</option>
@@ -318,7 +318,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   Start Date
                 </label>
                 <input
@@ -326,12 +326,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                   name="startDate"
                   value={formData.startDate}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-neutral-900"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                   End Date
                 </label>
                 <input
@@ -339,7 +339,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   name="endDate"
                   value={formData.endDate}
                   onChange={handleInputChange}
-                  className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-neutral-900"
                 />
               </div>
             </div>
@@ -349,12 +349,12 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* STEP 3: Content / Copy Editor */}
         {currentStep === 3 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               Step 3: Creative Content & Copy
             </h2>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
                 Campaign Body Copy / Message Blueprint
               </label>
               <textarea
@@ -363,7 +363,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 value={formData.content}
                 onChange={handleInputChange}
                 placeholder="Write your campaign body, promotional offer details, or ad copy hook here..."
-                className="w-full px-3.5 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/30"
+                className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
               />
             </div>
           </div>
@@ -372,50 +372,50 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* STEP 4: Review & Final Launch */}
         {currentStep === 4 && (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
               Step 4: Review & Finalize
             </h2>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3 text-sm">
+            <div className="bg-neutral-50 dark:bg-neutral-800/40 border border-neutral-200 dark:border-neutral-800 rounded-xl p-5 space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase">Campaign Name:</span>
-                  <p className="font-semibold text-slate-900">{formData.name || 'Untitled Campaign'}</p>
+                  <span className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase">Campaign Name:</span>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{formData.name || 'Untitled Campaign'}</p>
                 </div>
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase">Channel:</span>
-                  <p className="font-semibold text-slate-900">{formData.type}</p>
+                  <span className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase">Channel:</span>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">{formData.type}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
                 <div>
-                  <span className="text-xs font-semibold text-slate-400 uppercase">Budget:</span>
-                  <p className="font-semibold text-slate-900">${formData.budget || '0'}</p>
+                  <span className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase">Budget:</span>
+                  <p className="font-semibold text-neutral-900 dark:text-neutral-100">${formData.budget || '0'}</p>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200/60">
-                <span className="text-xs font-semibold text-slate-400 uppercase">Participating Stores:</span>
+              <div className="pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
+                <span className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase">Participating Stores:</span>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {formData.participatingStores.length > 0 ? (
                     formData.participatingStores.map((st) => (
                       <span
                         key={st}
-                        className="bg-blue-100 text-blue-800 text-[11px] font-medium px-2 py-0.5 rounded border border-blue-200"
+                        className="bg-brand-100 dark:bg-brand-500/15 text-brand-800 dark:text-brand-200 text-[11px] font-medium px-2 py-0.5 rounded border border-brand-200 dark:border-brand-500/30"
                       >
                         {st}
                       </span>
                     ))
                   ) : (
-                    <span className="text-slate-400 text-xs italic">No stores selected</span>
+                    <span className="text-neutral-400 dark:text-neutral-500 text-xs italic">No stores selected</span>
                   )}
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200/60">
-                <span className="text-xs font-semibold text-slate-400 uppercase">Preview Message:</span>
-                <p className="text-xs text-slate-700 mt-1 italic bg-white p-3 rounded border border-slate-200">
+              <div className="pt-2 border-t border-neutral-200/60 dark:border-neutral-800">
+                <span className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase">Preview Message:</span>
+                <p className="text-xs text-neutral-700 dark:text-neutral-300 mt-1 italic bg-white dark:bg-neutral-900 p-3 rounded border border-neutral-200 dark:border-neutral-800">
                   {formData.content || 'No content written.'}
                 </p>
               </div>
@@ -424,15 +424,15 @@ const handleSubmit = async (e: React.FormEvent) => {
         )}
 
         {/* Navigation Controls */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+        <div className="pt-4 border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
           <button
             type="button"
             onClick={handleBack}
             disabled={currentStep === 1 || isSubmitting}
             className={`px-4 py-2 text-xs font-semibold rounded-lg transition-colors ${
               currentStep === 1 || isSubmitting
-                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500 cursor-not-allowed'
+                : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
             }`}
           >
             ← Back
@@ -442,7 +442,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <button
               type="button"
               onClick={handleNext}
-              className="px-4 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+              className="px-4 py-2 text-xs font-semibold bg-brand-700 hover:bg-brand-600 text-white rounded-lg transition-colors"
             >
               Continue →
             </button>

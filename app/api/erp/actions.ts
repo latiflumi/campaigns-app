@@ -1,4 +1,6 @@
-"use server"
+// Server-only helpers for the ERP analytics API. Not server actions: they carry the
+// internal API key, so they must never be callable from the browser.
+import "server-only"
 
 export interface CampaignDetailedAnalytics {
   totals: {

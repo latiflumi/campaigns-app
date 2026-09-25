@@ -9,10 +9,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4 py-12">
-  <div className="w-full max-w-sm rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-xl shadow-zinc-200/50 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
+  <div className="w-full max-w-sm rounded-2xl border border-neutral-200/80 bg-white p-8 shadow-xl shadow-neutral-200/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
     {/* Header */}
     <div className="flex flex-col items-center text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-400">
         <svg
           className="h-6 w-6"
           fill="none"
@@ -27,10 +27,10 @@ export default function LoginPage() {
           />
         </svg>
       </div>
-      <h1 className="mt-4 text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+      <h1 className="mt-4 text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
         Welcome back
       </h1>
-      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+      <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
         Enter your credentials to access CampaignStudio
       </p>
     </div>
@@ -42,7 +42,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="userName"
-            className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400"
           >
             Username
           </label>
@@ -52,7 +52,7 @@ export default function LoginPage() {
               name="userName"
               type="text"
               required
-              className="block w-full rounded-lg border border-zinc-300 bg-zinc-50/50 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600/15 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder-zinc-600 dark:focus:border-indigo-500 dark:focus:bg-zinc-950 dark:focus:ring-indigo-500/20"
+              className="block w-full rounded-lg border border-neutral-300 bg-neutral-50/50 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 transition-all focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-600/15 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder-neutral-600 dark:focus:border-brand-500 dark:focus:bg-neutral-950 dark:focus:ring-brand-500/20"
             />
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function LoginPage() {
         <div>
           <label
             htmlFor="password"
-            className="block text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400"
+            className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400"
           >
             Password
           </label>
@@ -72,7 +72,7 @@ export default function LoginPage() {
               type="password"
               required
               placeholder="••••••••"
-              className="block w-full rounded-lg border border-zinc-300 bg-zinc-50/50 px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 transition-all focus:border-indigo-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600/15 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder-zinc-600 dark:focus:border-indigo-500 dark:focus:bg-zinc-950 dark:focus:ring-indigo-500/20"
+              className="block w-full rounded-lg border border-neutral-300 bg-neutral-50/50 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 transition-all focus:border-brand-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-600/15 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-100 dark:placeholder-neutral-600 dark:focus:border-brand-500 dark:focus:bg-neutral-950 dark:focus:ring-brand-500/20"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
 
       {/* Error Message Alert */}
       {state?.error && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
+        <div className="rounded-lg border border-red-200 bg-red-50/80 p-3 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <p className="flex items-center gap-2">
             <span className="font-semibold">Error:</span> {state.error}
           </p>
@@ -92,7 +92,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isPending}
-          className="flex w-full items-center justify-center rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-600 dark:hover:bg-indigo-500 dark:focus:ring-indigo-500 dark:focus:ring-offset-zinc-900"
+          className="flex w-full items-center justify-center rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-600 dark:focus:ring-brand-500 dark:focus:ring-offset-neutral-900"
         >
           {isPending ? (
             <span className="flex items-center gap-2">

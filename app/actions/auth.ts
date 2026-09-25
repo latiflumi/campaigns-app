@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from "../lib/prisma"
-import { setAuthCookies } from "../lib/session"
+import { setAuthCookies, deleteAuthCookies } from "../lib/session"
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 
@@ -35,4 +35,10 @@ export async function loginAction(prevState: AuthFormState | null, formData: For
 
     await setAuthCookies({ userId: user.userId, userName: user.userName })
     redirect('/campaigns')
+}
+
+/** Clears both auth cookies and sends the user to /login. */
+export async function logoutAction() {
+    await deleteAuthCookies()
+    redirect('/login')
 }

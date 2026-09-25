@@ -57,6 +57,18 @@ model User {
   userName String @unique
   password String
 
+  // Profile (all optional, edited on /profile)
+  fullName String?
+  email    String?
+  jobTitle String?
+  company  String?
+  bio      String? @db.Text
+
+  // Avatar: a 256×256 image resized in the browser, served by /api/avatar/[userId]
+  avatar          Bytes?
+  avatarType      String?
+  avatarUpdatedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
