@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
   // 4. Signed in and on /login: go to the app
   if (pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('/campaigns', request.url));
   }
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
