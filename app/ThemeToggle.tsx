@@ -6,11 +6,13 @@
 // The icon is picked with CSS (dark:), so server and client markup always match.
 
 import { Moon, Sun } from "lucide-react"
+import { useT } from "./lib/i18n/client"
 
 // Keep in sync with the cookie name read in app/layout.tsx
 const THEME_COOKIE = "theme"
 
 export default function ThemeToggle({ className = "" }: { className?: string }) {
+  const t = useT()
   const toggle = () => {
     const root = document.documentElement
     const current =
@@ -25,8 +27,8 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle light and dark mode"
-      title="Toggle light / dark"
+      aria-label={t.nav.toggleTheme}
+      title={t.nav.toggleThemeTitle}
       className={`inline-flex size-8 cursor-pointer items-center justify-center rounded-full transition-colors ${className}`}
     >
       <Moon className="size-4 dark:hidden" />

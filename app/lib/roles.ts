@@ -7,8 +7,6 @@ import { redirect } from "next/navigation"
 import { prisma } from "./prisma"
 import { getSession, requireSession, type TokenPayLoad } from "./session"
 
-export const FORBIDDEN_MESSAGE = "Vetëm administratorët mund ta bëjnë këtë veprim."
-
 async function isAdminUser(userId: string) {
   const user = await prisma.user.findUnique({ where: { userId }, select: { role: true } })
   return user?.role === "ADMIN"

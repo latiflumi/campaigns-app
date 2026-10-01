@@ -9,6 +9,8 @@ import { AnimatePresence, motion } from "motion/react"
 import { LogOut, UserRound } from "lucide-react"
 import UserAvatar from "./UserAvatar"
 import { logoutAction } from "./actions/auth"
+import { useT } from "./lib/i18n/client"
+import LanguageToggle from "./LanguageToggle"
 
 export default function UserMenu({
   name,
@@ -19,6 +21,7 @@ export default function UserMenu({
   userName: string
   avatarSrc: string | null
 }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -70,9 +73,9 @@ export default function UserMenu({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`Account menu for ${name}`}
+        aria-label={t.userMenu.accountFor(name)}
         className={`flex cursor-pointer rounded-full ring-2 transition-shadow focus-visible:ring-brand-400 focus-visible:outline-none ${
-          open ? "ring-neutral-300" : "ring-neutral-700 hover:ring-neutral-400"
+          open ? "ring-neutral-400 dark:ring-neutral-300" : "ring-neutral-200 hover:ring-neutral-300 dark:ring-neutral-700 dark:hover:ring-neutral-400"
         }`}
       >
         <UserAvatar name={name} src={avatarSrc} className="size-8 text-xs" />
@@ -83,7 +86,7 @@ export default function UserMenu({
           <motion.div
             ref={menuRef}
             role="menu"
-            aria-label="Account"
+            aria-label={t.userMenu.account}
             onKeyDown={onMenuKeyDown}
             initial={{ opacity: 0, scale: 0.96, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -101,6 +104,12 @@ export default function UserMenu({
             </div>
             <div className="my-1 h-px bg-neutral-100 dark:bg-neutral-800" />
 
+            {/* Phones: the header has no room for the language switch, so it lives here */}
+            <div className="flex items-center justify-between px-3 py-2 sm:hidden">
+              <span className="text-sm font-medium text-neutral-700 dark:text-neutral-200">{t.nav.language}</span>
+              <LanguageToggle />
+            </div>
+
             <Link
               href="/profile"
               role="menuitem"
@@ -108,7 +117,7 @@ export default function UserMenu({
               className={`${item} text-neutral-700 hover:bg-neutral-100 focus-visible:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800`}
             >
               <UserRound className="size-4 text-neutral-400" />
-              View profile
+              {t.userMenu.viewProfile}
             </Link>
 
             {/* Posts to the logoutAction server action, which clears the auth cookies and redirects */}
@@ -119,7 +128,7 @@ export default function UserMenu({
                 className={`${item} text-red-600 hover:bg-red-50 focus-visible:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 dark:focus-visible:bg-red-500/10`}
               >
                 <LogOut className="size-4" />
-                Log out
+                {t.userMenu.logOut}
               </button>
             </form>
           </motion.div>

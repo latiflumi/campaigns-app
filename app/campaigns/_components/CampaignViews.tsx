@@ -23,6 +23,8 @@ import {
   RowActions,
   Highlight,
 } from "./parts"
+import { useT } from "@/app/lib/i18n/client"
+import type { Dict } from "@/app/lib/i18n/dictionaries"
 
 export interface ViewRow {
   campaign: CampaignListItem
@@ -53,9 +55,9 @@ const itemMotion = {
   transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const },
 }
 
-function metaLine(c: CampaignListItem) {
-  const parts = [channelMeta(c.type).label]
-  if (c.budget) parts.push(`Buxheti €${formatInt(c.budget)}`)
+function metaLine(c: CampaignListItem, t: Dict) {
+  const parts = [channelMeta(c.type, t).label]
+  if (c.budget) parts.push(t.campaigns.budget(`€${formatInt(c.budget)}`))
   if (c.subject?.trim()) parts.push(c.subject.trim())
   return parts.join(" · ")
 }
@@ -81,10 +83,11 @@ function SectionHeader({ section, className }: { section: ViewSection; className
 }
 
 function TimelineBlock({ row, now }: { row: ViewRow; now: number }) {
+  const t = useT()
   return (
     <div className="min-w-0">
       <div className="flex items-baseline justify-between gap-3 text-xs">
-        <span className="truncate font-medium text-neutral-600 dark:text-neutral-300">{formatRange(row.campaign, now)}</span>
+        <span className="truncate font-medium text-neutral-600 dark:text-neutral-300">{formatRange(row.campaign, now, t)}</span>
         <span className={cx("shrink-0 font-semibold", timelineTone(row.timeline))}>{row.timeline.label}</span>
       </div>
       <div className="mt-2">
@@ -100,6 +103,7 @@ const listCols =
   "lg:grid-cols-[minmax(0,2.4fr)_7.5rem_minmax(0,1.7fr)_minmax(0,1fr)_9.5rem_6.5rem]"
 
 export function ListView({ sections, now, query, totalStores, maxRevenue, onDelete, canManage }: ViewProps) {
+  const t = useT()
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
       <div
@@ -108,12 +112,12 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
           listCols
         )}
       >
-        <span>Kampanja</span>
-        <span>Statusi</span>
-        <span>Kohëzgjatja</span>
-        <span>Dyqanet</span>
-        <span className="text-right">Qarkullimi bruto</span>
-        <span className="sr-only">Actions</span>
+        <span>{t.campaigns.columns.campaign}</span>
+        <span>{t.campaigns.columns.status}</span>
+        <span>{t.campaigns.columns.duration}</span>
+        <span>{t.campaigns.columns.stores}</span>
+        <span className="text-right">{t.campaigns.columns.grossRevenue}</span>
+        <span className="sr-only">{t.campaigns.columns.actions}</span>
       </div>
 
       {sections.map((section) => (
@@ -144,7 +148,7 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
                       aria-hidden
                       className={cx(
                         "absolute inset-y-3 left-0 w-[3px] rounded-r-full transition-opacity",
-                        live ? "bg-emerald-400" : channelMeta(c.type).accent,
+                        live ? "bg-emerald-400" : channelMeta(c.type, t).accent,
                         live ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                       )}
                     />
@@ -158,7 +162,7 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
                         >
                           <Highlight text={c.name} query={query} />
                         </Link>
-                        <p className="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-400">{metaLine(c)}</p>
+                        <p className="mt-0.5 truncate text-xs text-neutral-500 dark:text-neutral-400">{metaLine(c, t)}</p>
                       </div>
                     </div>
 
@@ -193,6 +197,7 @@ export function ListView({ sections, now, query, totalStores, maxRevenue, onDele
 // ---------- grid ----------
 
 export function GridView({ sections, now, query, totalStores, maxRevenue, onDelete, canManage }: ViewProps) {
+  const t = useT()
   return (
     <div className="space-y-8">
       {sections.map((section) => (
@@ -233,7 +238,7 @@ export function GridView({ sections, now, query, totalStores, maxRevenue, onDele
                     >
                       <Highlight text={c.name} query={query} />
                     </Link>
-                    <p className="mt-1 truncate text-xs text-neutral-500 dark:text-neutral-400">{metaLine(c)}</p>
+                    <p className="mt-1 truncate text-xs text-neutral-500 dark:text-neutral-400">{metaLine(c, t)}</p>
 
                     <div className="mt-5">
                       <TimelineBlock row={row} now={now} />
@@ -241,11 +246,11 @@ export function GridView({ sections, now, query, totalStores, maxRevenue, onDele
 
                     <div className="mt-5 grid grid-cols-2 gap-4 border-t border-neutral-100 pt-4 dark:border-neutral-800">
                       <div className="min-w-0">
-                        <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Dyqanet</div>
+                        <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">{t.campaigns.columns.stores}</div>
                         <StoreCoverage stores={c.participatingStores} totalStores={totalStores} />
                       </div>
                       <div className="min-w-0">
-                        <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">Qarkullimi bruto</div>
+                        <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-neutral-400 dark:text-neutral-500">{t.campaigns.columns.grossRevenue}</div>
                         <RevenueCell campaign={c} maxRevenue={maxRevenue} align="left" />
                       </div>
                     </div>

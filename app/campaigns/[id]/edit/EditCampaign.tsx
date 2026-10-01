@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { fetchStoresAction, updateCampaign } from '../../actions'
 import { Campaign } from '@/app/types/CampaignTypes'
 import Link from 'next/link'
+import { useT } from '@/app/lib/i18n/client'
 
 interface EditCampaignFormProps {
   initialCampaign: Campaign
@@ -19,6 +20,7 @@ interface Store {
 
 export default function EditCampaignForm({ initialCampaign }: EditCampaignFormProps) {
   const router = useRouter()
+  const t = useT()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [stores, setStores] = useState<Store[]>([])
 
@@ -78,16 +80,16 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
       const result = await updateCampaign(initialCampaign.id, formData)
 
       if (result && !result.success) {
-        toast.error(result.error || 'Gabim gjatë përditësimit të kampanjës')
+        toast.error(result.error || t.form.updateFailed)
         setIsSubmitting(false)
         return
       }
 
-      toast.success('Kampanja u përditësua me sukses!')
+      toast.success(t.form.updated)
       router.push('/campaigns')
     } catch (error) {
       console.error('Failed to update campaign:', error)
-      toast.error('Një gabim i papritur ndodhi.')
+      toast.error(t.common.unexpectedError)
       setIsSubmitting(false)
     }
   }
@@ -98,17 +100,17 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
     <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-          Edit Campaign: {initialCampaign.name}
+          {t.form.editTitle(initialCampaign.name)}
         </h1>
         <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
-          Update campaign parameters, budget, participating locations, or creative copy.
+          {t.form.editSubtitle}
         </p>
       </div>
       <Link
         href="/campaigns"
         className="text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 px-3 py-2 rounded-lg transition-colors"
       >
-        Cancel & Exit
+        {t.form.cancelExit}
       </Link>
     </div>
 
@@ -118,19 +120,19 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
       {/* SECTION 1: Core Details */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
-          1. Campaign Details
+          {t.form.sectionDetails}
         </h2>
 
         <div>
           <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-            Campaign Name *
+            {t.form.name}
           </label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="e.g. Autumn Product Launch Blitz"
+            placeholder={t.form.namePlaceholder}
             required
             className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
           />
@@ -139,7 +141,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              Marketing Channel *
+              {t.form.channel}
             </label>
             <select
               name="type"
@@ -147,23 +149,23 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
               onChange={handleInputChange}
               className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="STORE">Në dyqane</option>
-              <option value="ECOMMERCE">Ecommerce</option>
-              <option value="SMS">SMS</option>
-              <option value="EMAIL">EMAIL</option>
+              <option value="STORE">{t.form.channelOptions.STORE}</option>
+              <option value="ECOMMERCE">{t.form.channelOptions.ECOMMERCE}</option>
+              <option value="SMS">{t.form.channelOptions.SMS}</option>
+              <option value="EMAIL">{t.form.channelOptions.EMAIL}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              Subject Line / Tagline
+              {t.form.subject}
             </label>
             <input
               type="text"
               name="subject"
               value={formData.subject}
               onChange={handleInputChange}
-              placeholder="p.sh 50% zbritje në të gjithë artikujt..."
+              placeholder={t.form.subjectPlaceholder}
               className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
             />
           </div>
@@ -173,13 +175,13 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
       {/* SECTION 2: Target Locations & Logistics */}
       <div className="space-y-5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
-          2. Locations, Budget & Lifecycle
+          {t.form.sectionLogistics}
         </h2>
 
         {formData.type === 'STORE' && (
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1.5">
-              Participating Retail Locations ({formData.participatingStores.length} Selected)
+              {t.form.stores(formData.participatingStores.length)}
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-neutral-50 dark:bg-neutral-800/40 p-3 rounded-lg border border-neutral-200 dark:border-neutral-800">
               {stores.map((store) => {
@@ -215,7 +217,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              Total Allocated Budget ($)
+              {t.form.budget}
             </label>
             <input
               type="text"
@@ -229,7 +231,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              Status
+              {t.form.status}
             </label>
             <select
               name="status"
@@ -237,11 +239,11 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
               onChange={handleInputChange}
               className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="DRAFT">Draft</option>
-              <option value="SCHEDULED">Scheduled</option>
-              <option value="ACTIVE">Active</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="PAUSED">Paused</option>
+              <option value="DRAFT">{t.status.DRAFT}</option>
+              <option value="SCHEDULED">{t.status.SCHEDULED}</option>
+              <option value="ACTIVE">{t.status.ACTIVE}</option>
+              <option value="COMPLETED">{t.status.COMPLETED}</option>
+              <option value="PAUSED">{t.status.PAUSED}</option>
             </select>
           </div>
         </div>
@@ -249,7 +251,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              Start Date
+              {t.form.startDate}
             </label>
             <input
               type="date"
@@ -262,7 +264,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
 
           <div>
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-              End Date
+              {t.form.endDate}
             </label>
             <input
               type="date"
@@ -278,19 +280,19 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
       {/* SECTION 3: Content / Copy Editor */}
       <div className="space-y-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 border-b border-neutral-100 dark:border-neutral-800 pb-3">
-          3. Creative Content & Copy
+          {t.form.sectionContent}
         </h2>
 
         <div>
           <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider mb-1">
-            Campaign Body Copy / Message Blueprint
+            {t.form.body}
           </label>
           <textarea
             name="content"
             rows={6}
             value={formData.content}
             onChange={handleInputChange}
-            placeholder="Write your campaign body, promotional offer details, or ad copy hook here..."
+            placeholder={t.form.bodyPlaceholder}
             className="w-full px-3.5 py-2 text-sm border border-neutral-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 bg-neutral-50/30 dark:bg-neutral-800/50"
           />
         </div>
@@ -302,7 +304,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
           href="/campaigns"
           className="px-4 py-2 text-xs font-semibold text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
         >
-          Cancel
+          {t.common.cancel}
         </Link>
 
         <button
@@ -314,7 +316,7 @@ export default function EditCampaignForm({ initialCampaign }: EditCampaignFormPr
               : 'bg-brand-700 hover:bg-brand-600'
           }`}
         >
-          {isSubmitting ? 'Updating Postgres...' : '💾 Save Changes'}
+          {isSubmitting ? t.form.updating : t.form.saveChanges}
         </button>
       </div>
 

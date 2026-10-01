@@ -7,6 +7,8 @@ import { toast } from "sonner"
 import { Camera, Loader2, Trash2, Lock, AtSign, CalendarDays } from "lucide-react"
 import UserAvatar from "../UserAvatar"
 import { updateProfile, uploadAvatar, removeAvatar, type ProfileInput } from "./actions"
+import { useT } from "../lib/i18n/client"
+import type { Dict } from "../lib/i18n/dictionaries"
 
 type Fields = Required<{ [K in keyof ProfileInput]: string }>
 
@@ -15,10 +17,9 @@ interface ProfileFormProps {
   initial: Fields
 }
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-const memberSince = (iso: string) => {
+const memberSince = (iso: string, t: Dict) => {
   const d = new Date(iso)
-  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`
+  return t.dates.monthYear(t.dates.monthsLong[d.getUTCMonth()], d.getUTCFullYear())
 }
 
 const BIO_MAX = 500
@@ -63,6 +64,7 @@ function Field({ label, htmlFor, hint, children }: { label: string; htmlFor: str
 }
 
 export default function ProfileForm({ user, initial }: ProfileFormProps) {
+  const t = useT()
   const [saved, setSaved] = useState<Fields>(initial)
   const [form, setForm] = useState<Fields>(initial)
   const [saving, setSaving] = useState(false)
@@ -97,7 +99,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
     const trimmed = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim()])) as Fields
     setForm(trimmed)
     setSaved(trimmed)
-    toast.success("Profile saved.")
+    toast.success(t.profile.saved)
   }
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,11 +107,11 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
     e.target.value = "" // allow picking the same file again
     if (!file) return
     if (!file.type.startsWith("image/")) {
-      toast.error("Choose an image file.")
+      toast.error(t.profile.chooseImageFile)
       return
     }
     if (file.size > RAW_MAX_BYTES) {
-      toast.error("That image is over 15 MB. Choose a smaller one.")
+      toast.error(t.profile.over15)
       return
     }
 
@@ -119,7 +121,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
       try {
         blob = await toAvatarBlob(file)
       } catch {
-        toast.error("Couldn't read that image. Try a JPG or PNG.")
+        toast.error(t.profile.cantRead)
         return
       }
       const data = new FormData()
@@ -130,7 +132,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
         return
       }
       setAvatarSrc(res.url)
-      toast.success("Photo updated.")
+      toast.success(t.profile.photoUpdated)
     } finally {
       setAvatarBusy(false)
     }
@@ -145,14 +147,14 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
       return
     }
     setAvatarSrc(null)
-    toast.success("Photo removed.")
+    toast.success(t.profile.photoRemoved)
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Profile</h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Your name, photo and details as they appear in CampaignStudio.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{t.profile.title}</h1>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{t.profile.subtitle}</p>
       </div>
 
       {/* Identity card: previews edits as you type */}
@@ -163,7 +165,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={avatarBusy}
-            aria-label="Change photo"
+            aria-label={t.profile.changePhoto}
             className="group relative size-24 shrink-0 cursor-pointer rounded-full ring-4 ring-neutral-100 transition-shadow focus-visible:ring-brand-500 focus-visible:outline-none disabled:cursor-wait dark:ring-neutral-800"
           >
             <UserAvatar name={displayName} src={avatarSrc} className="size-24 text-4xl" />
@@ -187,7 +189,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
               </span>
               <span className="inline-flex items-center gap-1">
                 <CalendarDays className="size-3.5" />
-                Member since {memberSince(user.createdAt)}
+                {t.profile.memberSince(memberSince(user.createdAt, t))}
               </span>
             </div>
           </div>
@@ -200,7 +202,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
               className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-800 transition-colors hover:bg-neutral-50 disabled:cursor-wait disabled:opacity-60 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
             >
               <Camera className="size-3.5" />
-              {avatarSrc ? "Change photo" : "Upload photo"}
+              {avatarSrc ? t.profile.changePhoto : t.profile.uploadPhoto}
             </button>
             {avatarSrc && (
               <button
@@ -210,7 +212,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
                 className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-wait disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10"
               >
                 <Trash2 className="size-3.5" />
-                Remove
+                {t.profile.remove}
               </button>
             )}
           </div>
@@ -220,36 +222,36 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
       {/* General info */}
       <form onSubmit={handleSubmit} className="rounded-2xl border border-neutral-200 bg-white shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
         <div className="border-b border-neutral-100 px-6 py-4 dark:border-neutral-800">
-          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">General info</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">All fields are optional.</p>
+          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">{t.profile.generalInfo}</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t.profile.allOptional}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-5 px-6 py-6 sm:grid-cols-2">
-          <Field label="Full name" htmlFor="fullName">
-            <input id="fullName" type="text" value={form.fullName} onChange={set("fullName")} maxLength={80} autoComplete="name" placeholder="e.g. Latif Lumi" className={inputClass} />
+          <Field label={t.profile.fullName} htmlFor="fullName">
+            <input id="fullName" type="text" value={form.fullName} onChange={set("fullName")} maxLength={80} autoComplete="name" placeholder={t.profile.fullNamePlaceholder} className={inputClass} />
           </Field>
 
-          <Field label="Username" htmlFor="userName" hint={<span className="inline-flex items-center gap-1"><Lock className="size-3" />Used to sign in</span>}>
+          <Field label={t.profile.username} htmlFor="userName" hint={<span className="inline-flex items-center gap-1"><Lock className="size-3" />{t.profile.usedToSignIn}</span>}>
             <input id="userName" type="text" value={user.userName} readOnly className={`${inputClass} cursor-not-allowed bg-neutral-50 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400`} />
           </Field>
 
-          <Field label="Job title" htmlFor="jobTitle">
-            <input id="jobTitle" type="text" value={form.jobTitle} onChange={set("jobTitle")} maxLength={80} autoComplete="organization-title" placeholder="e.g. Marketing Manager" className={inputClass} />
+          <Field label={t.profile.jobTitle} htmlFor="jobTitle">
+            <input id="jobTitle" type="text" value={form.jobTitle} onChange={set("jobTitle")} maxLength={80} autoComplete="organization-title" placeholder={t.profile.jobTitlePlaceholder} className={inputClass} />
           </Field>
 
-          <Field label="Company" htmlFor="company">
-            <input id="company" type="text" value={form.company} onChange={set("company")} maxLength={80} autoComplete="organization" placeholder="e.g. A&M Clothes" className={inputClass} />
+          <Field label={t.profile.company} htmlFor="company">
+            <input id="company" type="text" value={form.company} onChange={set("company")} maxLength={80} autoComplete="organization" placeholder={t.profile.companyPlaceholder} className={inputClass} />
           </Field>
 
           <div className="sm:col-span-2">
-            <Field label="Email" htmlFor="email">
+            <Field label={t.profile.email} htmlFor="email">
               <input id="email" type="email" value={form.email} onChange={set("email")} maxLength={120} autoComplete="email" placeholder="name@company.com" className={inputClass} />
             </Field>
           </div>
 
           <div className="sm:col-span-2">
             <Field
-              label="Bio"
+              label={t.profile.bio}
               htmlFor="bio"
               hint={
                 <span className={form.bio.length > BIO_MAX - 50 ? "text-amber-600 dark:text-amber-400" : undefined}>
@@ -257,7 +259,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
                 </span>
               }
             >
-              <textarea id="bio" rows={4} value={form.bio} onChange={set("bio")} maxLength={BIO_MAX} placeholder="A line or two about your role." className={`${inputClass} resize-y`} />
+              <textarea id="bio" rows={4} value={form.bio} onChange={set("bio")} maxLength={BIO_MAX} placeholder={t.profile.bioPlaceholder} className={`${inputClass} resize-y`} />
             </Field>
           </div>
         </div>
@@ -267,10 +269,10 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
             {dirty ? (
               <span className="inline-flex items-center gap-1.5 font-medium text-amber-700 dark:text-amber-400">
                 <span className="size-1.5 rounded-full bg-amber-500" />
-                Unsaved changes
+                {t.profile.unsaved}
               </span>
             ) : (
-              "All changes saved"
+              t.profile.allSaved
             )}
           </span>
           <div className="flex gap-2">
@@ -280,7 +282,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
               disabled={!dirty || saving}
               className="cursor-pointer rounded-xl px-4 py-2 text-sm font-semibold text-neutral-600 transition-colors hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
-              Discard
+              {t.profile.discard}
             </button>
             <button
               type="submit"
@@ -288,7 +290,7 @@ export default function ProfileForm({ user, initial }: ProfileFormProps) {
               className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-brand-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-brand-500 dark:hover:bg-brand-400"
             >
               {saving && <Loader2 className="size-4 animate-spin" />}
-              Save changes
+              {t.profile.saveChanges}
             </button>
           </div>
         </div>

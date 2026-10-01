@@ -15,6 +15,8 @@ import {
   type CampaignListItem,
   type Timeline,
 } from "./campaign-utils"
+import { useT } from "@/app/lib/i18n/client"
+import type { Dict } from "@/app/lib/i18n/dictionaries"
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ")
@@ -23,7 +25,7 @@ export function cx(...parts: (string | false | null | undefined)[]) {
 // ---------- badges ----------
 
 export function StatusPill({ status }: { status: string }) {
-  const meta = statusMeta(status)
+  const meta = statusMeta(status, useT())
   return (
     <span className={cx("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset", meta.pill)}>
       <span className="relative flex size-1.5">
@@ -36,7 +38,7 @@ export function StatusPill({ status }: { status: string }) {
 }
 
 export function ChannelTile({ type, size = "md" }: { type: string; size?: "md" | "lg" }) {
-  const meta = channelMeta(type)
+  const meta = channelMeta(type, useT())
   const Icon = meta.icon
   return (
     <span
@@ -109,41 +111,32 @@ export function TimelineBar({ timeline }: { timeline: Timeline }) {
   )
 }
 
-export function timelineTone(timeline: Timeline) {
-  switch (timeline.phase) {
-    case "live":
-      return timeline.days <= 3 ? "text-orange-600 dark:text-orange-400" : "text-emerald-700 dark:text-emerald-400"
-    case "open":
-      return "text-emerald-700 dark:text-emerald-400"
-    case "upcoming":
-      return "text-sky-700 dark:text-sky-400"
-    default:
-      return "text-neutral-500 dark:text-neutral-400"
-  }
-}
+// timelineTone lives in campaign-utils (plain function, callable from server components too)
+export { timelineTone } from "./campaign-utils"
 
 // ---------- stores ----------
 
-export function storeSummary(stores: string[], totalStores: number) {
-  if (stores.length === 0) return "No stores"
-  if (totalStores > 0 && stores.length >= totalStores) return "All stores"
+export function storeSummary(stores: string[], totalStores: number, t: Dict) {
+  if (stores.length === 0) return t.campaigns.noStores
+  if (totalStores > 0 && stores.length >= totalStores) return t.campaigns.allStoresShort
   if (stores.length === 1) return stores[0]
-  return `${stores.length} stores`
+  return t.campaigns.nStores(stores.length)
 }
 
-function storeTooltip(stores: string[]) {
+function storeTooltip(stores: string[], t: Dict) {
   if (stores.length <= 1) return undefined
   const shown = stores.slice(0, 15).join("\n")
-  return stores.length > 15 ? `${shown}\n+${stores.length - 15} more` : shown
+  return stores.length > 15 ? `${shown}\n${t.common.more(stores.length - 15)}` : shown
 }
 
 export function StoreCoverage({ stores, totalStores }: { stores: string[]; totalStores: number }) {
+  const t = useT()
   const share = totalStores > 0 ? Math.min(1, stores.length / totalStores) : 0
   return (
     // relative z-10 lifts it above the row's stretched link so the tooltip shows
-    <div className="relative z-10 min-w-0" title={storeTooltip(stores)}>
+    <div className="relative z-10 min-w-0" title={storeTooltip(stores, t)}>
       <div className="truncate text-sm font-medium text-neutral-700 dark:text-neutral-200">
-        {storeSummary(stores, totalStores)}
+        {storeSummary(stores, totalStores, t)}
       </div>
       {stores.length > 1 && totalStores > 0 && (
         <div className="mt-1.5 flex items-center gap-2">
@@ -170,11 +163,12 @@ export function RevenueCell({
   maxRevenue: number
   align?: "left" | "right"
 }) {
+  const t = useT()
   const { grossRevenue, unitsSold } = campaign
 
   if (grossRevenue === null) {
     return (
-      <div className={cx("text-sm text-neutral-400 dark:text-neutral-500", align === "right" && "text-right")} title="No revenue data for this campaign">
+      <div className={cx("text-sm text-neutral-400 dark:text-neutral-500", align === "right" && "text-right")} title={t.campaigns.noRevenue}>
         —
       </div>
     )
@@ -186,7 +180,7 @@ export function RevenueCell({
       <div className="text-sm font-semibold tabular-nums text-neutral-900 dark:text-neutral-100">{formatEur(grossRevenue)}</div>
       <div className={cx("mt-1.5 flex items-center gap-2", align === "right" && "justify-end")}>
         {unitsSold !== null && (
-          <span className="text-[11px] tabular-nums text-neutral-400 dark:text-neutral-500">{formatInt(unitsSold)} units</span>
+          <span className="text-[11px] tabular-nums text-neutral-400 dark:text-neutral-500">{t.campaigns.units(formatInt(unitsSold))}</span>
         )}
         <div className="h-1 w-14 overflow-hidden rounded-full bg-neutral-100 dark:bg-neutral-800">
           <motion.div
@@ -223,22 +217,23 @@ export function RowActions({
   /** Admins also get Edit and Delete; viewers only View */
   canManage: boolean
 }) {
+  const t = useT()
   return (
     <div className="flex items-center gap-0.5">
-      <Link href={`/campaigns/${id}`} className={actionBtn} aria-label={`View ${name}`} title="View">
+      <Link href={`/campaigns/${id}`} className={actionBtn} aria-label={t.campaigns.viewName(name)} title={t.common.view}>
         <Eye className="size-4" />
       </Link>
       {canManage && (
         <>
-          <Link href={`/campaigns/${id}/edit`} className={actionBtn} aria-label={`Edit ${name}`} title="Edit">
+          <Link href={`/campaigns/${id}/edit`} className={actionBtn} aria-label={t.campaigns.editName(name)} title={t.common.edit}>
             <Pencil className="size-4" />
           </Link>
           <button
             type="button"
             onClick={onDelete}
             className={cx(actionBtn, "hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400")}
-            aria-label={`Delete ${name}`}
-            title="Delete"
+            aria-label={t.campaigns.deleteName(name)}
+            title={t.common.delete}
           >
             <Trash2 className="size-4" />
           </button>

@@ -43,6 +43,7 @@ import {
 } from "../_components/campaign-utils"
 import { cx, ChannelTile, StatusPill, TimelineBar, timelineTone } from "../_components/parts"
 import { StoreLeaderboard, ProductLeaderboard, CategoryBars, Panel } from "./_components/Leaderboards"
+import { useT } from "@/app/lib/i18n/client"
 
 export interface CampaignDetailData {
   id: string
@@ -101,29 +102,30 @@ function elapsedDays(t: Timeline) {
 export default function CampaignDetail({ campaign, analytics, gap, silentStores, canManage, totalStores, now: serverNow }: CampaignDetailProps) {
   const now = useNow(serverNow)
   const router = useRouter()
-  const timeline = getTimeline(campaign, now)
+  const t = useT()
+  const timeline = getTimeline(campaign, now, t)
   const totals = analytics?.totals
   const ranDays = elapsedDays(timeline)
 
   const handleDelete = () => {
-    toast(`Fshi “${campaign.name}”?`, {
-      description: "Kampanja do të fshihet përgjithmonë.",
+    toast(t.detail.deleteConfirm(campaign.name), {
+      description: t.detail.deleteDescription,
       duration: Infinity,
       action: {
-        label: "Fshi",
+        label: t.detail.delete,
         onClick: () => {
           const request = deleteCampaign(campaign.id).then((res) => {
-            if (!res.success) throw new Error(res.error ?? "Fshirja dështoi.")
+            if (!res.success) throw new Error(res.error ?? t.detail.deleteFailed)
             router.push("/campaigns")
           })
           toast.promise(request, {
-            loading: "Duke fshirë kampanjën…",
-            success: "Kampanja u fshi.",
+            loading: t.detail.deleting,
+            success: t.detail.deleted,
             error: (err: Error) => err.message,
           })
         },
       },
-      cancel: { label: "Anulo", onClick: () => {} },
+      cancel: { label: t.common.cancel, onClick: () => {} },
     })
   }
 
@@ -137,7 +139,7 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
             className="inline-flex items-center gap-1.5 text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
           >
             <ArrowLeft className="size-4" />
-            Kthehu te kampanjat
+            {t.detail.back}
           </Link>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -149,13 +151,11 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
                   <StatusPill status={campaign.status} />
                 </div>
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-neutral-500 dark:text-neutral-400">
-                  <span>{channelMeta(campaign.type).label}</span>
+                  <span>{channelMeta(campaign.type, t).label}</span>
                   <span aria-hidden>·</span>
-                  <span>{formatRange(campaign, now)}</span>
+                  <span>{formatRange(campaign, now, t)}</span>
                   <span aria-hidden>·</span>
-                  <span>
-                    {campaign.participatingStores.length} {campaign.participatingStores.length === 1 ? "dyqan" : "dyqane"}
-                  </span>
+                  <span>{t.detail.stores(campaign.participatingStores.length)}</span>
                 </p>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
                   className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-800 shadow-xs transition-colors hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:hover:bg-neutral-800"
                 >
                   <Pencil className="size-4" />
-                  Ndrysho
+                  {t.detail.edit}
                 </Link>
                 <button
                   type="button"
@@ -175,7 +175,7 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
                   className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-xs transition-colors hover:bg-red-50 dark:border-red-500/30 dark:bg-neutral-900 dark:text-red-400 dark:hover:bg-red-500/10"
                 >
                   <Trash2 className="size-4" />
-                  Fshi
+                  {t.detail.delete}
                 </button>
               </div>
             )}
@@ -195,15 +195,15 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
             <div className="min-w-0">
               {totals ? (
                 <>
-                  <div className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Qarkullimi bruto</div>
+                  <div className="text-sm font-medium text-neutral-500 dark:text-neutral-400">{t.detail.grossRevenue}</div>
                   <div className="mt-2 text-4xl font-bold tracking-tight break-words text-neutral-900 sm:text-5xl dark:text-white">{formatEur(totals.grossRevenue)}</div>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-500 dark:text-neutral-400">
                     <span>
-                      Neto <strong className="font-semibold text-neutral-800 dark:text-neutral-200">{formatEur(totals.netRevenue)}</strong>
+                      {t.detail.net} <strong className="font-semibold text-neutral-800 dark:text-neutral-200">{formatEur(totals.netRevenue)}</strong>
                     </span>
                     {ranDays > 0 && (
                       <span>
-                        <strong className="font-semibold text-neutral-800 dark:text-neutral-200">{formatEur(totals.grossRevenue / ranDays)}</strong> / ditë
+                        <strong className="font-semibold text-neutral-800 dark:text-neutral-200">{formatEur(totals.grossRevenue / ranDays)}</strong> {t.detail.perDay}
                       </span>
                     )}
                   </div>
@@ -222,29 +222,29 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <StatTile
               icon={Coins}
-              label="Fitimi bruto"
+              label={t.detail.grossProfit}
               value={formatEur(totals.grossProfit)}
-              sub={`Marzha ${formatPct(totals.grossMarginPct ?? 0)}`}
+              sub={t.detail.margin(formatPct(totals.grossMarginPct ?? 0))}
               meter={(totals.grossMarginPct ?? 0) / 100}
             />
             <StatTile
               icon={PackageCheck}
-              label="Njësi të shitura"
+              label={t.detail.unitsSold}
               value={formatInt(totals.totalUnitsSold)}
-              sub={ranDays > 0 ? `≈ ${formatInt(totals.totalUnitsSold / ranDays)} në ditë` : "—"}
+              sub={ranDays > 0 ? t.detail.perDayApprox(formatInt(totals.totalUnitsSold / ranDays)) : "—"}
             />
             <StatTile
               icon={Percent}
-              label="Markdown"
+              label={t.detail.markdown}
               value={formatPct(totals.markdownPct ?? 0)}
-              sub={`${formatEur(totals.markdownAmount ?? 0)} zbritje`}
+              sub={t.detail.markdownAmount(formatEur(totals.markdownAmount ?? 0))}
               meter={(totals.markdownPct ?? 0) / 100}
             />
             <StatTile
               icon={Receipt}
-              label="Kosto totale"
+              label={t.detail.totalCost}
               value={formatEur(totals.totalCost)}
-              sub={totals.netRevenue > 0 ? `${formatPct((totals.totalCost / totals.netRevenue) * 100)} e neto` : "—"}
+              sub={totals.netRevenue > 0 ? t.detail.ofNet(formatPct((totals.totalCost / totals.netRevenue) * 100)) : "—"}
             />
           </div>
         )}
@@ -257,13 +257,13 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
             )}
             {analytics && analytics.topProducts?.length > 0 && <ProductLeaderboard products={analytics.topProducts} />}
 
-            <Panel icon={FileText} title="Përmbajtja">
+            <Panel icon={FileText} title={t.detail.content}>
               <div className="space-y-4 px-5 py-4">
                 {campaign.subject?.trim() && (
                   <div className="rounded-xl bg-neutral-50 px-4 py-3 dark:bg-neutral-800/50">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
                       <Mail className="size-3.5" />
-                      Subjekti
+                      {t.detail.subject}
                     </div>
                     <p className="mt-1 font-medium text-neutral-800 dark:text-neutral-100">{campaign.subject}</p>
                   </div>
@@ -271,7 +271,7 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
                 {campaign.content?.trim() ? (
                   <p className="text-sm leading-relaxed whitespace-pre-line text-neutral-700 dark:text-neutral-300">{campaign.content}</p>
                 ) : (
-                  <p className="text-sm text-neutral-400 italic">Nuk ka përmbajtje ose udhëzime për këtë kampanjë.</p>
+                  <p className="text-sm text-neutral-400 italic">{t.detail.noContent}</p>
                 )}
               </div>
             </Panel>
@@ -291,11 +291,12 @@ export default function CampaignDetail({ campaign, analytics, gap, silentStores,
 // ---------- hero pieces ----------
 
 function TimelineHero({ campaign, timeline, now }: { campaign: CampaignDetailData; timeline: Timeline; now: number }) {
+  const t = useT()
   const { phase, totalDays } = timeline
   const dayOf =
-    phase === "live" ? `Dita ${totalDays - timeline.days + 1} nga ${totalDays}`
-    : phase === "ended" ? `${totalDays} ditë gjithsej`
-    : phase === "upcoming" && totalDays ? `Zgjat ${totalDays} ditë`
+    phase === "live" ? t.detail.dayOf(totalDays - timeline.days + 1, totalDays)
+    : phase === "ended" ? t.detail.daysTotal(totalDays)
+    : phase === "upcoming" && totalDays ? t.detail.lasts(totalDays)
     : null
 
   return (
@@ -308,50 +309,31 @@ function TimelineHero({ campaign, timeline, now }: { campaign: CampaignDetailDat
         <TimelineBar timeline={timeline} />
       </div>
       <div className="mt-2 flex justify-between text-xs font-medium text-neutral-500 dark:text-neutral-400">
-        <span>{campaign.startDate ? formatDay(campaign.startDate, true) : "Pa datë fillimi"}</span>
-        <span>{campaign.endDate ? formatDay(campaign.endDate, true) : "Pa datë përfundimi"}</span>
+        <span>{campaign.startDate ? formatDay(t, campaign.startDate, true) : t.detail.noStart}</span>
+        <span>{campaign.endDate ? formatDay(t, campaign.endDate, true) : t.detail.noEnd}</span>
       </div>
       {phase === "live" && (
         <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">
-          {formatPct(timeline.progress * 100)} e periudhës ka kaluar · përditësohet çdo minutë
+          {t.detail.elapsed(formatPct(timeline.progress * 100))}
         </p>
       )}
       {phase === "upcoming" && campaign.startDate && (
-        <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">Nis më {formatDay(campaign.startDate, new Date(campaign.startDate).getUTCFullYear() !== new Date(now).getUTCFullYear())}</p>
+        <p className="mt-3 text-xs text-neutral-400 dark:text-neutral-500">{t.detail.startsOn(formatDay(t, campaign.startDate, new Date(campaign.startDate).getUTCFullYear() !== new Date(now).getUTCFullYear()))}</p>
       )}
     </div>
   )
 }
 
-const GAPS: Record<AnalyticsGap, { icon: LucideIcon; title: string; body: string; edit: boolean }> = {
-  "no-stores": {
-    icon: StoreIcon,
-    title: "Pa dyqane pjesëmarrëse",
-    body: "Shto dyqanet e kampanjës që të shfaqen shitjet dhe performanca.",
-    edit: true,
-  },
-  "no-dates": {
-    icon: CalendarX2,
-    title: "Mungon data e përfundimit",
-    body: "Analitika shfaqet sapo kampanja të ketë një periudhë të plotë.",
-    edit: true,
-  },
-  upcoming: {
-    icon: Hourglass,
-    title: "Kampanja nuk ka nisur ende",
-    body: "Shitjet do të shfaqen këtu sapo të fillojë.",
-    edit: false,
-  },
-  unavailable: {
-    icon: CloudOff,
-    title: "Të dhënat e ERP nuk janë të disponueshme",
-    body: "Nuk arritëm të marrim shitjet për këtë kampanjë. Provo përsëri pak më vonë.",
-    edit: false,
-  },
+const GAPS: Record<AnalyticsGap, { icon: LucideIcon; edit: boolean }> = {
+  "no-stores": { icon: StoreIcon, edit: true },
+  "no-dates": { icon: CalendarX2, edit: true },
+  upcoming: { icon: Hourglass, edit: false },
+  unavailable: { icon: CloudOff, edit: false },
 }
 
 function GapNotice({ gap, campaign, canManage }: { gap: AnalyticsGap; campaign: CampaignDetailData; canManage: boolean }) {
-  const g = GAPS[gap]
+  const t = useT()
+  const g = { ...GAPS[gap], ...t.detail.gaps[gap] }
   const Icon = g.icon
   return (
     <div className="flex h-full flex-col justify-center">
@@ -366,7 +348,7 @@ function GapNotice({ gap, campaign, canManage }: { gap: AnalyticsGap; campaign: 
           className="mt-4 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-600 dark:text-brand-400"
         >
           <Pencil className="size-3.5" />
-          Plotëso kampanjën
+          {t.detail.completeCampaign}
         </Link>
       )}
     </div>
@@ -415,33 +397,34 @@ function StatTile({
 // ---------- sidebar ----------
 
 function DetailsCard({ campaign, timeline, now }: { campaign: CampaignDetailData; timeline: Timeline; now: number }) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
   const thisYear = new Date(now).getUTCFullYear()
-  const day = (iso: string) => formatDay(iso, new Date(iso).getUTCFullYear() !== thisYear)
+  const day = (iso: string) => formatDay(t, iso, new Date(iso).getUTCFullYear() !== thisYear)
 
   const copyId = () => {
     navigator.clipboard.writeText(campaign.id).then(
       () => {
         setCopied(true)
-        toast.success("ID u kopjua.")
+        toast.success(t.detail.idCopied)
         setTimeout(() => setCopied(false), 1500)
       },
-      () => toast.error("Kopjimi dështoi.")
+      () => toast.error(t.detail.copyFailed)
     )
   }
 
   const rows: { label: string; value: React.ReactNode }[] = [
-    { label: "Lloji", value: channelMeta(campaign.type).label },
-    { label: "Buxheti", value: campaign.budget ? `€${formatInt(campaign.budget)}` : <Muted>Pa buxhet</Muted> },
-    { label: "Fillimi", value: campaign.startDate ? day(campaign.startDate) : <Muted>Pa datë</Muted> },
-    { label: "Përfundimi", value: campaign.endDate ? day(campaign.endDate) : <Muted>Pa datë</Muted> },
-    { label: "Kohëzgjatja", value: timeline.totalDays ? `${timeline.totalDays} ditë` : <Muted>E hapur</Muted> },
-    { label: "Krijuar", value: day(campaign.createdAt) },
-    { label: "Përditësuar", value: day(campaign.updatedAt) },
+    { label: t.detail.type, value: channelMeta(campaign.type, t).label },
+    { label: t.detail.budget, value: campaign.budget ? `€${formatInt(campaign.budget)}` : <Muted>{t.detail.noBudget}</Muted> },
+    { label: t.detail.start, value: campaign.startDate ? day(campaign.startDate) : <Muted>{t.detail.noDate}</Muted> },
+    { label: t.detail.end, value: campaign.endDate ? day(campaign.endDate) : <Muted>{t.detail.noDate}</Muted> },
+    { label: t.detail.duration, value: timeline.totalDays ? t.detail.days(timeline.totalDays) : <Muted>{t.detail.openEnded}</Muted> },
+    { label: t.detail.created, value: day(campaign.createdAt) },
+    { label: t.detail.updated, value: day(campaign.updatedAt) },
   ]
 
   return (
-    <Panel icon={CalendarRange} title="Detajet">
+    <Panel icon={CalendarRange} title={t.detail.details}>
       <dl className="divide-y divide-neutral-100 px-5 dark:divide-neutral-800">
         {rows.map((r) => (
           <div key={r.label} className="flex items-center justify-between gap-4 py-2.5 text-sm">
@@ -453,7 +436,7 @@ function DetailsCard({ campaign, timeline, now }: { campaign: CampaignDetailData
       <button
         type="button"
         onClick={copyId}
-        title="Kopjo ID-në"
+        title={t.detail.copyId}
         className="group flex w-full cursor-pointer items-center justify-between gap-3 border-t border-neutral-100 px-5 py-2.5 text-left transition-colors hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/40"
       >
         <span className="truncate font-mono text-[11px] text-neutral-400">{campaign.id}</span>
@@ -470,6 +453,7 @@ const Muted = ({ children }: { children: React.ReactNode }) => (
 const STORES_COLLAPSED = 12
 
 function StoresCard({ stores, totalStores, silentStores }: { stores: string[]; totalStores: number; silentStores: string[] }) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const silent = new Set(silentStores)
   const sorted = [...stores].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
@@ -479,7 +463,7 @@ function StoresCard({ stores, totalStores, silentStores }: { stores: string[]; t
   return (
     <Panel
       icon={StoreIcon}
-      title="Dyqanet pjesëmarrëse"
+      title={t.detail.participatingStores}
       aside={
         <span className="text-xs tabular-nums text-neutral-500 dark:text-neutral-400">
           <strong className="font-semibold text-neutral-800 dark:text-neutral-200">{stores.length}</strong>/{totalStores}
@@ -488,7 +472,7 @@ function StoresCard({ stores, totalStores, silentStores }: { stores: string[]; t
     >
       <div className="px-5 py-4">
         {stores.length === 0 ? (
-          <p className="text-sm text-neutral-400 italic">Kjo kampanjë nuk është e lidhur me asnjë dyqan.</p>
+          <p className="text-sm text-neutral-400 italic">{t.detail.noLinkedStores}</p>
         ) : (
           <>
             <div className="mb-4 h-1.5 rounded-r-[4px] bg-brand-50 dark:bg-brand-500/10">
@@ -503,7 +487,7 @@ function StoresCard({ stores, totalStores, silentStores }: { stores: string[]; t
               {visible.map((name) => (
                 <li
                   key={name}
-                  title={silent.has(name) ? "Pa shitje në këtë periudhë" : undefined}
+                  title={silent.has(name) ? t.detail.noSalesInPeriod : undefined}
                   className={cx(
                     "rounded-lg border px-2 py-1 text-xs font-medium",
                     silent.has(name)
@@ -521,14 +505,14 @@ function StoresCard({ stores, totalStores, silentStores }: { stores: string[]; t
                 onClick={() => setOpen((v) => !v)}
                 className="mt-3 inline-flex cursor-pointer items-center gap-1 text-xs font-semibold text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
               >
-                {open ? "Shfaq më pak" : `+${sorted.length - STORES_COLLAPSED} të tjera`}
+                {open ? t.common.showLess : t.detail.moreStores(sorted.length - STORES_COLLAPSED)}
                 <ChevronDown className={cx("size-3.5 transition-transform", open && "rotate-180")} />
               </button>
             )}
             {silentStores.length > 0 && (
               <p className="mt-3 flex items-center gap-1.5 text-[11px] text-neutral-400 dark:text-neutral-500">
                 <Info className="size-3.5" />
-                Dyqanet me vijë të ndërprerë nuk kanë shitje në këtë periudhë.
+                {t.detail.dashedNote}
               </p>
             )}
           </>

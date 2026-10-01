@@ -3,8 +3,11 @@
 
 import { useActionState } from 'react';
 import { loginAction, type AuthFormState } from '../actions/auth';
+import { useT } from '../lib/i18n/client';
+import AppMark from '../AppMark';
 
 export default function LoginPage() {
+  const t = useT();
   const [state, formAction, isPending] = useActionState<AuthFormState | null, FormData>(loginAction, null);
 
   return (
@@ -12,26 +15,12 @@ export default function LoginPage() {
   <div className="w-full max-w-sm rounded-2xl border border-neutral-200/80 bg-white p-8 shadow-xl shadow-neutral-200/50 dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
     {/* Header */}
     <div className="flex flex-col items-center text-center">
-      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-400">
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="2"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
-          />
-        </svg>
-      </div>
+      <AppMark className="size-12 drop-shadow-sm" />
       <h1 className="mt-4 text-xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
-        Welcome back
+        {t.login.title}
       </h1>
       <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-        Enter your credentials to access CampaignStudio
+        {t.login.subtitle}
       </p>
     </div>
 
@@ -44,7 +33,7 @@ export default function LoginPage() {
             htmlFor="userName"
             className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400"
           >
-            Username
+            {t.login.username}
           </label>
           <div className="mt-1.5">
             <input
@@ -63,7 +52,7 @@ export default function LoginPage() {
             htmlFor="password"
             className="block text-xs font-semibold uppercase tracking-wider text-neutral-600 dark:text-neutral-400"
           >
-            Password
+            {t.login.password}
           </label>
           <div className="mt-1.5">
             <input
@@ -82,7 +71,7 @@ export default function LoginPage() {
       {state?.error && (
         <div className="rounded-lg border border-red-200 bg-red-50/80 p-3 text-xs text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400">
           <p className="flex items-center gap-2">
-            <span className="font-semibold">Error:</span> {state.error}
+            <span className="font-semibold">{t.login.error}</span> {state.error}
           </p>
         </div>
       )}
@@ -116,10 +105,10 @@ export default function LoginPage() {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              Signing in...
+              {t.login.signingIn}
             </span>
           ) : (
-            'Sign In'
+            t.login.signIn
           )}
         </button>
       </div>

@@ -38,6 +38,7 @@ import {
 } from "./_components/campaign-utils"
 import { cx, AnimatedNumber } from "./_components/parts"
 import { ListView, GridView, type ViewRow, type ViewSection } from "./_components/CampaignViews"
+import { useT } from "@/app/lib/i18n/client"
 
 interface CampaignListProps {
   campaigns: CampaignListItem[]
@@ -60,17 +61,13 @@ function useNow(serverNow: string) {
   return now
 }
 
-const SORT_LABELS: Record<SortKey, string> = {
-  smart: "Smart order",
-  newest: "Newest first",
-  revenue: "Highest revenue",
-  name: "Name A–Z",
-}
+const SORT_KEYS: SortKey[] = ["smart", "newest", "revenue", "name"]
 
 const PHASE_RANK = { live: 0, open: 1, upcoming: 2, ended: 3, undated: 4 } as const
 
 export default function CampaignList({ campaigns, stores, channels, now: serverNow, initialView, canManage }: CampaignListProps) {
   const now = useNow(serverNow)
+  const t = useT()
 
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<CampaignStatus | "ALL">("ALL")
@@ -110,8 +107,8 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
     () =>
       campaigns
         .filter((c) => !hidden.has(c.id))
-        .map((campaign) => ({ campaign, timeline: getTimeline(campaign, now) })),
-    [campaigns, hidden, now]
+        .map((campaign) => ({ campaign, timeline: getTimeline(campaign, now, t) })),
+    [campaigns, hidden, now, t]
   )
 
   // Everything except the status tab: drives tab counts and the stat tiles
@@ -175,12 +172,12 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
     const endingThisWeek = live.filter((r) => r.timeline.phase === "live" && r.timeline.days <= 7).length
 
     return [
-      { key: "live", title: "Live now", hint: endingThisWeek ? `${endingThisWeek} ending this week` : undefined, rows: live },
-      { key: "upcoming", title: "Upcoming", rows: upcoming },
-      { key: "past", title: "Past", rows: past },
-      { key: "undated", title: "No dates", rows: undated },
+      { key: "live", title: t.campaigns.sections.live, hint: endingThisWeek ? t.campaigns.sections.endingThisWeek(endingThisWeek) : undefined, rows: live },
+      { key: "upcoming", title: t.campaigns.sections.upcoming, rows: upcoming },
+      { key: "past", title: t.campaigns.sections.past, rows: past },
+      { key: "undated", title: t.campaigns.sections.undated, rows: undated },
     ].filter((s) => s.rows.length > 0)
-  }, [shown, sort])
+  }, [shown, sort, t])
 
   const maxRevenue = useMemo(
     () => shown.reduce((m, r) => Math.max(m, r.campaign.grossRevenue ?? 0), 0),
@@ -251,10 +248,10 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
   }
 
   const tabs: { key: CampaignStatus | "ALL"; label: string; count: number }[] = [
-    { key: "ALL", label: "All", count: base.length },
+    { key: "ALL", label: t.campaigns.all, count: base.length },
     ...STATUS_ORDER.filter((s) => (statusCounts.get(s) ?? 0) > 0 || s === status).map((s) => ({
       key: s,
-      label: statusMeta(s).label,
+      label: statusMeta(s, t).label,
       count: statusCounts.get(s) ?? 0,
     })),
   ]
@@ -262,16 +259,16 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
   // ---------- delete ----------
 
   const handleDelete = (c: CampaignListItem) => {
-    toast(`Delete “${c.name}”?`, {
-      description: "This permanently removes the campaign.",
+    toast(t.campaigns.deleteConfirm(c.name), {
+      description: t.campaigns.deleteDescription,
       duration: Infinity,
       action: {
-        label: "Delete",
+        label: t.common.delete,
         onClick: () => {
           // Hide it immediately; bring it back if the server says no
           setHidden((prev) => new Set(prev).add(c.id))
           const request = deleteCampaign(c.id).then((res) => {
-            if (!res.success) throw new Error(res.error ?? "Failed to delete campaign.")
+            if (!res.success) throw new Error(res.error ?? t.campaigns.deleteFailed)
           })
           request.catch(() =>
             setHidden((prev) => {
@@ -281,13 +278,13 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
             })
           )
           toast.promise(request, {
-            loading: "Deleting campaign…",
-            success: "Campaign deleted.",
+            loading: t.campaigns.deleting,
+            success: t.campaigns.deleted,
             error: (err: Error) => err.message,
           })
         },
       },
-      cancel: { label: "Cancel", onClick: () => {} },
+      cancel: { label: t.common.cancel, onClick: () => {} },
     })
   }
 
@@ -301,8 +298,8 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium tracking-wide text-neutral-500 dark:text-neutral-400">{formatToday(now)}</p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">Campaigns</h1>
+            <p className="text-xs font-medium tracking-wide text-neutral-500 dark:text-neutral-400">{formatToday(now, t)}</p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">{t.campaigns.title}</h1>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-neutral-500 dark:text-neutral-400">
               {stats.live > 0 && (
                 <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
@@ -310,13 +307,13 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                     <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                   </span>
-                  {stats.live} running now
+                  {t.campaigns.runningNow(stats.live)}
                 </span>
               )}
               {stats.live > 0 && <span aria-hidden>·</span>}
-              <span>{stats.upcoming} upcoming</span>
+              <span>{t.campaigns.upcomingCount(stats.upcoming)}</span>
               <span aria-hidden>·</span>
-              <span>{rows.length} total</span>
+              <span>{t.campaigns.total(rows.length)}</span>
             </p>
           </div>
           {canManage && (
@@ -325,7 +322,7 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-brand-600 hover:shadow-md active:scale-[0.98] dark:bg-brand-500 dark:text-white dark:hover:bg-brand-400"
             >
               <Plus className="size-4" />
-              New campaign
+              {t.campaigns.newCampaign}
             </Link>
           )}
         </div>
@@ -338,41 +335,41 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <StatTile
                 icon={Radio}
-                label="Live now"
+                label={t.campaigns.stats.live}
                 live={stats.live > 0}
                 value={<AnimatedNumber value={stats.live} format={formatInt} />}
-                sub={stats.endingSoon ? `${stats.endingSoon} ending within 7 days` : "None ending this week"}
+                sub={stats.endingSoon ? t.campaigns.stats.endingWithin7(stats.endingSoon) : t.campaigns.stats.noneEnding}
                 tone="live"
               />
               <StatTile
                 icon={Percent}
-                label="Marzha bruto"
+                label={t.campaigns.stats.margin}
                 value={stats.margin === null ? "—" : <AnimatedNumber value={stats.margin} format={formatPct} />}
                 sub={
                   stats.margin === null
-                    ? "No sales data for live campaigns"
-                    : `${formatEurWhole(stats.profit)} fitim · ${formatEurWhole(stats.markdown)} zbritje`
+                    ? t.campaigns.stats.noMarginData
+                    : t.campaigns.stats.marginSub(formatEurWhole(stats.profit), formatEurWhole(stats.markdown))
                 }
                 tone="brand"
                 meter={stats.margin === null ? undefined : stats.margin / 100}
               />
               <StatTile
                 icon={CalendarClock}
-                label="Upcoming"
+                label={t.campaigns.stats.upcoming}
                 value={<AnimatedNumber value={stats.upcoming} format={formatInt} />}
-                sub={stats.next ? `Next: ${stats.next.campaign.name} · ${stats.next.timeline.label.toLowerCase()}` : "Nothing scheduled"}
+                sub={stats.next ? t.campaigns.stats.next(stats.next.campaign.name, stats.next.timeline.label.toLowerCase()) : t.campaigns.stats.nothingScheduled}
                 tone="upcoming"
               />
               <StatTile
                 icon={StoreIcon}
-                label="Store reach"
+                label={t.campaigns.stats.reach}
                 value={
                   <>
                     <AnimatedNumber value={stats.reach} format={formatInt} />
                     <span className="text-lg font-semibold text-neutral-400 dark:text-neutral-500">/{totalStores}</span>
                   </>
                 }
-                sub="Stores in a live campaign"
+                sub={t.campaigns.stats.reachSub}
                 tone="brand"
                 meter={totalStores ? stats.reach / totalStores : 0}
               />
@@ -381,16 +378,16 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
             {/* Toolbar */}
             <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white/90 p-3 shadow-xs backdrop-blur-md lg:sticky lg:top-[4.75rem] lg:z-30 dark:border-neutral-800 dark:bg-neutral-900/90">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div role="tablist" aria-label="Filter by status" className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/70">
-                  {tabs.map((t) => {
-                    const active = status === t.key
+                <div role="tablist" aria-label={t.campaigns.filterByStatus} className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/70">
+                  {tabs.map((tab) => {
+                    const active = status === tab.key
                     return (
                       <button
-                        key={t.key}
+                        key={tab.key}
                         role="tab"
                         type="button"
                         aria-selected={active}
-                        onClick={() => setStatus(t.key)}
+                        onClick={() => setStatus(tab.key)}
                         className={cx(
                           "relative shrink-0 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                           active ? "text-neutral-900 dark:text-white" : "text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
@@ -404,9 +401,9 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                           />
                         )}
                         <span className="relative flex items-center gap-1.5">
-                          {t.key !== "ALL" && <span className={cx("size-1.5 rounded-full", statusMeta(t.key).dot)} />}
-                          {t.label}
-                          <span className="tabular-nums text-neutral-400 dark:text-neutral-500">{t.count}</span>
+                          {tab.key !== "ALL" && <span className={cx("size-1.5 rounded-full", statusMeta(tab.key, t).dot)} />}
+                          {tab.label}
+                          <span className="tabular-nums text-neutral-400 dark:text-neutral-500">{tab.count}</span>
                         </span>
                       </button>
                     )
@@ -415,10 +412,10 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
 
                 <div className="flex items-center gap-2">
                   <SelectField
-                    label="Sort"
+                    label={t.campaigns.sort.label}
                     value={sort}
                     onChange={(v) => setSort(v as SortKey)}
-                    options={(Object.keys(SORT_LABELS) as SortKey[]).map((k) => ({ value: k, label: SORT_LABELS[k] }))}
+                    options={SORT_KEYS.map((k) => ({ value: k, label: t.campaigns.sort[k] }))}
                     className="flex-1 lg:flex-none"
                   />
                   <ViewToggle view={view} onChange={changeView} />
@@ -434,8 +431,8 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Escape" && setQuery("")}
-                    placeholder="Search campaigns…"
-                    aria-label="Search campaigns"
+                    placeholder={t.campaigns.searchPlaceholder}
+                    aria-label={t.campaigns.searchLabel}
                     className="h-10 w-full rounded-xl border border-neutral-200 bg-neutral-50/60 pr-10 pl-9 text-sm text-neutral-900 placeholder:text-neutral-400 transition-colors focus:border-transparent focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800/50 dark:text-neutral-100 dark:focus:bg-neutral-900"
                   />
                   <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border border-neutral-200 bg-white px-1.5 font-mono text-[10px] text-neutral-400 sm:block dark:border-neutral-700 dark:bg-neutral-800">
@@ -449,7 +446,7 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                     type="date"
                     value={from}
                     onChange={(e) => setFrom(e.target.value)}
-                    aria-label="From date"
+                    aria-label={t.campaigns.fromDate}
                     className="w-full min-w-0 cursor-pointer bg-transparent px-1 text-xs font-medium text-neutral-700 focus:outline-none md:w-[7.5rem] dark:text-neutral-200 dark:[color-scheme:dark]"
                   />
                   <ArrowRight className="size-3.5 shrink-0 text-neutral-400" />
@@ -458,25 +455,25 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                     value={to}
                     min={from || undefined}
                     onChange={(e) => setTo(e.target.value)}
-                    aria-label="To date"
+                    aria-label={t.campaigns.toDate}
                     className="w-full min-w-0 cursor-pointer bg-transparent px-1 text-xs font-medium text-neutral-700 focus:outline-none md:w-[7.5rem] dark:text-neutral-200 dark:[color-scheme:dark]"
                   />
                 </div>
 
                 <div className="flex gap-2">
                   <SelectField
-                    label="Store"
+                    label={t.campaigns.store}
                     value={store}
                     onChange={setStore}
-                    options={[{ value: "", label: "All stores" }, ...stores.map((s) => ({ value: s.name, label: s.name }))]}
+                    options={[{ value: "", label: t.campaigns.allStores }, ...stores.map((s) => ({ value: s.name, label: s.name }))]}
                     className="flex-1 md:w-44 md:flex-none"
                   />
                   {channels.length > 1 && (
                     <SelectField
-                      label="Channel"
+                      label={t.campaigns.channel}
                       value={channel}
                       onChange={setChannel}
-                      options={[{ value: "", label: "All channels" }, ...channels.map((c) => ({ value: c, label: c }))]}
+                      options={[{ value: "", label: t.campaigns.allChannels }, ...channels.map((c) => ({ value: c, label: t.channel[c] ?? c }))]}
                       className="flex-1 md:w-36 md:flex-none"
                     />
                   )}
@@ -493,7 +490,7 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                   >
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                        <span className="font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">{shown.length}</span> of {rows.length}
+                        <span className="font-semibold tabular-nums text-neutral-700 dark:text-neutral-200">{shown.length}</span> {t.campaigns.shownOf} {rows.length}
                       </span>
                       {activeFilters.map((f) => (
                         <button
@@ -511,7 +508,7 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
                         onClick={clearAll}
                         className="cursor-pointer text-xs font-medium text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline dark:text-neutral-400 dark:hover:text-neutral-200"
                       >
-                        Clear all
+                        {t.campaigns.clearAll}
                       </button>
                     </div>
                   </motion.div>
@@ -523,14 +520,14 @@ export default function CampaignList({ campaigns, stores, channels, now: serverN
             {shown.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center dark:border-neutral-700 dark:bg-neutral-900">
                 <Search className="mx-auto size-8 text-neutral-300 dark:text-neutral-600" />
-                <p className="mt-3 font-semibold text-neutral-700 dark:text-neutral-200">Nuk u gjet asnjë kampanjë.</p>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Try a different search or loosen the filters.</p>
+                <p className="mt-3 font-semibold text-neutral-700 dark:text-neutral-200">{t.campaigns.noneFound}</p>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{t.campaigns.tryDifferent}</p>
                 <button
                   type="button"
                   onClick={clearAll}
                   className="mt-4 cursor-pointer rounded-lg bg-neutral-100 px-3 py-1.5 text-xs font-semibold text-neutral-700 transition-colors hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
                 >
-                  Clear filters
+                  {t.campaigns.clearFilters}
                 </button>
               </div>
             ) : (
@@ -652,12 +649,13 @@ function SelectField({
 }
 
 function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode) => void }) {
+  const t = useT()
   const options: { key: ViewMode; label: string; icon: LucideIcon }[] = [
-    { key: "list", label: "List view", icon: LayoutList },
-    { key: "grid", label: "Grid view", icon: LayoutGrid },
+    { key: "list", label: t.campaigns.listView, icon: LayoutList },
+    { key: "grid", label: t.campaigns.gridView, icon: LayoutGrid },
   ]
   return (
-    <div role="radiogroup" aria-label="Layout" className="flex h-10 shrink-0 items-center gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/70">
+    <div role="radiogroup" aria-label={t.campaigns.layout} className="flex h-10 shrink-0 items-center gap-1 rounded-xl bg-neutral-100 p-1 dark:bg-neutral-800/70">
       {options.map(({ key, label, icon: Icon }) => {
         const active = view === key
         return (
@@ -690,17 +688,16 @@ function ViewToggle({ view, onChange }: { view: ViewMode; onChange: (v: ViewMode
 }
 
 function EmptyState({ canManage }: { canManage: boolean }) {
+  const t = useT()
   return (
     <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-white px-6 py-20 text-center shadow-xs dark:border-neutral-800 dark:bg-neutral-900">
       <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-24 mx-auto size-72 rounded-full bg-brand-400/10 blur-3xl" />
       <span className="relative mx-auto inline-flex size-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 dark:bg-brand-500/10 dark:text-brand-400 dark:ring-brand-500/20">
         <Megaphone className="size-6" />
       </span>
-      <h2 className="relative mt-5 text-lg font-semibold text-neutral-900 dark:text-neutral-100">No campaigns yet</h2>
+      <h2 className="relative mt-5 text-lg font-semibold text-neutral-900 dark:text-neutral-100">{t.campaigns.emptyTitle}</h2>
       <p className="relative mx-auto mt-1 max-w-sm text-sm text-neutral-500 dark:text-neutral-400">
-        {canManage
-          ? "Create your first campaign to start tracking its timeline, stores and revenue here."
-          : "Campaigns will show up here once an administrator creates them."}
+        {canManage ? t.campaigns.emptyAdmin : t.campaigns.emptyViewer}
       </p>
       {canManage && (
         <Link
@@ -708,7 +705,7 @@ function EmptyState({ canManage }: { canManage: boolean }) {
           className="relative mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-600 dark:bg-brand-500 dark:text-white"
         >
           <Plus className="size-4" />
-          New campaign
+          {t.campaigns.newCampaign}
         </Link>
       )}
     </div>

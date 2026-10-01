@@ -4,6 +4,13 @@ import { prisma } from "../lib/prisma"
 import { getSession } from "../lib/session"
 import { avatarUrl } from "../lib/avatar"
 import ProfileForm from "./ProfileForm"
+import type { Metadata } from "next"
+import { getT } from "../lib/i18n/server"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return { title: t.profile.title }
+}
 
 export default async function ProfilePage() {
   const session = await getSession()

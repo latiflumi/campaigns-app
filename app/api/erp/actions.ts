@@ -29,6 +29,8 @@ export interface CampaignDetailedAnalytics {
     StyleNumber: string
     ProductName: string
     CategoryName: string
+    /** K41 colour code for the product image; missing from older erp-api builds */
+    ColorCode?: string | null
     unitsSold: number
     grossRevenue: number
     netRevenue: number

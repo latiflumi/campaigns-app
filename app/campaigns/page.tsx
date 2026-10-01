@@ -8,6 +8,13 @@ import { canManageCampaigns } from "@/app/lib/roles"
 import { fetchStoresAction, fetchChannelsAction } from "./actions"
 import { getCampaignRevenue } from "../api/erp/actions"
 import { VIEW_COOKIE, type CampaignListItem, type ViewMode } from "./_components/campaign-utils"
+import type { Metadata } from "next"
+import { getT } from "@/app/lib/i18n/server"
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return { title: t.nav.campaigns }
+}
 
 const toDay = (d: Date | null) => (d ? d.toISOString().split("T")[0] : null)
 

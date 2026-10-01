@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { PRODUCT_IMAGE_ORIGIN, PRODUCT_IMAGE_PATH } from "./app/lib/productImages";
 
 const nextConfig: NextConfig = {
     // Let phones/other devices on the local network load dev-server scripts.
@@ -6,13 +7,12 @@ const nextConfig: NextConfig = {
     // plain <Link>s work. Covers the laptop (192.168.10.x) and this PC (192.168.0.x).
     allowedDevOrigins: ['192.168.*.*'],
 
-    async redirects() {
-        return [
-            // "/" has no real page yet (app/page.tsx is placeholder data), so send people
-            // to the campaigns module. Temporary on purpose: "/" becomes the BI overview
-            // later, and a permanent (308) redirect would stay cached in browsers.
-            { source: '/', destination: '/campaigns', permanent: false },
-        ];
+    // Product photos from the stock app (see app/lib/productImages.ts). Next resizes them, so a list
+    // of 50 thumbnails loads a few KB each instead of the ~100 KB originals. Only that folder is allowed.
+    images: {
+        remotePatterns: [new URL(`${PRODUCT_IMAGE_ORIGIN}${PRODUCT_IMAGE_PATH}**`)],
+        // Photos rarely change; keep resized copies for a week
+        minimumCacheTTL: 7 * 24 * 3600,
     },
 };
 

@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
 
   // 4. Signed in and on /login: go to the app
   if (pathname === '/login') {
-    return NextResponse.redirect(new URL('/campaigns', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   const res = NextResponse.next({ request: { headers: requestHeaders } });
@@ -59,5 +59,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // Static assets (incl. the app icon, needed on the login page) skip the auth check
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)'],
 };

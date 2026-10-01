@@ -4,15 +4,17 @@ import { prisma } from "../lib/prisma";
 import { revalidatePath } from "next/cache"
 import { z } from "zod";
 import { requireSession } from "../lib/session";
-import { isAdmin, FORBIDDEN_MESSAGE } from "../lib/roles";
+import { isAdmin } from "../lib/roles";
+import { getT } from "../lib/i18n/server";
+import type { Dict } from "../lib/i18n/dictionaries";
 
 // Server actions are public POST endpoints, so each one checks the session itself.
 // requireSession() redirects to /login; it stays outside try/catch because redirect() throws.
 // Writes (create / update / delete) additionally require the ADMIN role; viewers can only read.
 
-// Base Zod Schema matching your Prisma model constraints
-const BaseCampaignSchema = z.object({
-  name: z.string().min(2, "Emri duhet te kete te pakten 2 shkronja"),
+// Base Zod Schema matching your Prisma model constraints (messages in the caller's language)
+const baseCampaignSchema = (t: Dict) => z.object({
+  name: z.string().min(2, t.serverErrors.nameMin),
   type: z.enum(['STORE', 'ECOMMERCE', 'SMS', 'EMAIL']),
   status: z.enum(['DRAFT', 'SCHEDULED', 'ACTIVE', 'COMPLETED', 'PAUSED']),
   subject: z.string().optional().nullable(),
@@ -33,19 +35,20 @@ const BaseCampaignSchema = z.object({
 })
 
 // Schema for updating (includes id)
-const UpdateCampaignSchema = BaseCampaignSchema.extend({
+const updateCampaignSchema = (t: Dict) => baseCampaignSchema(t).extend({
   id: z.string(),
 })
 
 /** What the create/edit forms send: dates as "YYYY-MM-DD" strings (or Date), which the schema converts. */
-export type CampaignFormInput = z.input<typeof BaseCampaignSchema>
+export type CampaignFormInput = z.input<ReturnType<typeof baseCampaignSchema>>
 
 export async function createCampaign(formData: CampaignFormInput) {
   const session = await requireSession()
-  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
+  const t = await getT()
+  if (!(await isAdmin(session))) return { success: false, error: t.serverErrors.forbidden }
   try {
     // Validate form inputs (without requiring id)
-    const validatedFields = BaseCampaignSchema.parse(formData);
+    const validatedFields = baseCampaignSchema(t).parse(formData);
 
     await prisma.campaign.create({
       data: validatedFields,
@@ -59,15 +62,16 @@ export async function createCampaign(formData: CampaignFormInput) {
       return { success: false, error: error.issues[0]?.message };
     }
     console.error("Database Error:", error);
-    return { success: false, error: "Gabim gjatë krijimit të kampanjës" };
+    return { success: false, error: t.serverErrors.createFailed };
   }
 }
 
 export async function updateCampaign(campaignId: string, formData: CampaignFormInput) {
   const session = await requireSession()
-  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
+  const t = await getT()
+  if (!(await isAdmin(session))) return { success: false, error: t.serverErrors.forbidden }
   try {
-    const validatedFields = UpdateCampaignSchema.parse({
+    const validatedFields = updateCampaignSchema(t).parse({
       ...formData,
       id: campaignId,
     });
@@ -85,13 +89,14 @@ export async function updateCampaign(campaignId: string, formData: CampaignFormI
       return { success: false, error: error.issues[0]?.message };
     }
     console.error("Database Error:", error);
-    return { success: false, error: "Gabim gjatë përditësimit të kampanjës" };
+    return { success: false, error: t.serverErrors.updateFailed };
   }
 }
 
 export async function deleteCampaign(campaignId: string) {
   const session = await requireSession()
-  if (!(await isAdmin(session))) return { success: false, error: FORBIDDEN_MESSAGE }
+  const t = await getT()
+  if (!(await isAdmin(session))) return { success: false, error: t.serverErrors.forbidden }
   try {
     await prisma.campaign.delete({
       where: { id: campaignId },
@@ -100,7 +105,7 @@ export async function deleteCampaign(campaignId: string) {
     return { success: true };
   } catch (error) {
     console.error("Database Error (delete):", error);
-    return { success: false, error: "Gabim gjatë fshirjes së kampanjës" };
+    return { success: false, error: t.serverErrors.deleteFailed };
   }
 }
 
