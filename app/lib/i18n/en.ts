@@ -592,6 +592,8 @@ export const en = {
       margin: "Margin",
       markdown: "Markdown",
       basket: "Avg basket",
+      upt: "Items/basket",
+      uptTitle: "Average number of items per receipt (retail sales and returns)",
       new: "New",
     },
     store: {

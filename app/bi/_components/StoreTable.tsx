@@ -11,7 +11,7 @@ import { formatEurWhole, formatPct } from "../../campaigns/_components/campaign-
 import { Card, CardHeader, cx, growth, signedPct } from "./ui"
 import { useT } from "@/app/lib/i18n/client"
 
-type Key = "name" | "sales" | "growth" | "margin" | "markdown" | "atv"
+type Key = "name" | "sales" | "growth" | "margin" | "markdown" | "atv" | "upt"
 
 const value: Record<Key, (r: BiStoreRow) => number | string> = {
   name: (r) => r.name,
@@ -20,6 +20,7 @@ const value: Record<Key, (r: BiStoreRow) => number | string> = {
   margin: (r) => r.current.marginPct ?? -Infinity,
   markdown: (r) => r.current.markdownPct ?? -Infinity,
   atv: (r) => r.current.atv ?? -Infinity,
+  upt: (r) => r.current.upt ?? -Infinity,
 }
 
 /** Diverging bar: growth to the right, decline to the left, zero in the middle (±30% fills a side). */
@@ -78,6 +79,7 @@ export default function StoreTable({ rows, compareLabel, query }: { rows: BiStor
               {th("margin", t.bi.storesTable.margin, true)}
               {th("markdown", t.bi.storesTable.markdown, true)}
               {th("atv", t.bi.storesTable.basket, true)}
+              {th("upt", t.bi.storesTable.upt, true)}
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
@@ -113,6 +115,7 @@ export default function StoreTable({ rows, compareLabel, query }: { rows: BiStor
                   <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.marginPct === null ? "—" : formatPct(r.current.marginPct)}</td>
                   <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.markdownPct === null ? "—" : formatPct(r.current.markdownPct)}</td>
                   <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.atv === null ? "—" : formatEurWhole(r.current.atv)}</td>
+                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300" title={t.bi.storesTable.uptTitle}>{r.current.upt === null ? "—" : r.current.upt.toFixed(2).replace(".", ",")}</td>
                 </tr>
               )
             })}

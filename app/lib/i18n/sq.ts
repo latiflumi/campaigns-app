@@ -583,6 +583,8 @@ export const sq: Dict = {
       margin: "Marzha",
       markdown: "Zbritja",
       basket: "Shporta mes.",
+      upt: "Artikuj/shportë",
+      uptTitle: "Numri mesatar i artikujve për kupon (shitje me pakicë dhe kthime)",
       new: "I ri",
     },
     store: {
