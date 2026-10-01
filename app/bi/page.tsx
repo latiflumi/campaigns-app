@@ -86,12 +86,8 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
         {summary.data && <Exceptions stores={summary.data.stores} totals={summary.data.totals.current} compareText={compareText} query={query} />}
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
-        <div className="min-w-0 lg:col-span-2">
-          {summary.data ? <StoreTable rows={summary.data.stores} compareLabel={compareText} query={query} /> : <ErrorCard message={summary.error!} />}
-        </div>
-        {categories.data ? <CategoryMix data={categories.data} compareText={compareText} /> : <ErrorCard message={categories.error!} />}
-      </div>
+      {/* Full width: the table has many columns and shouldn't need a sideways scroll on desktop */}
+      {summary.data ? <StoreTable rows={summary.data.stores} compareLabel={compareText} query={query} /> : <ErrorCard message={summary.error!} />}
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
         {products.data ? <ProductList products={products.data} days={rangeDays(from, to)} /> : <ErrorCard message={products.error!} />}
@@ -100,9 +96,14 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
         </Suspense>
       </div>
 
-      <Suspense fallback={<SkeletonCard height="h-72" />}>
-        <SegmentsSection range={range} compareText={compareText} />
-      </Suspense>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        {categories.data ? <CategoryMix data={categories.data} compareText={compareText} /> : <ErrorCard message={categories.error!} />}
+        <div className="min-w-0 lg:col-span-2">
+          <Suspense fallback={<SkeletonCard height="h-72" />}>
+            <SegmentsSection range={range} compareText={compareText} />
+          </Suspense>
+        </div>
+      </div>
 
       </PendingArea>
 

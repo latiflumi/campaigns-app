@@ -3,7 +3,7 @@
 import { Suspense } from "react"
 import Link from "next/link"
 import type { Metadata } from "next"
-import { ArrowRight, BarChart3, Boxes, Gauge, Megaphone, Plus } from "lucide-react"
+import { ArrowRight, ArrowUpRight, BarChart3, Boxes, Gauge, Megaphone, Plus } from "lucide-react"
 import { prisma } from "./lib/prisma"
 import { requireSession } from "./lib/session"
 import { canManageCampaigns } from "./lib/roles"
@@ -208,27 +208,26 @@ async function Pulse({ t }: { t: Dict }) {
   const k = t.bi.kpi
   const ly = (r: SummaryResult) => r.data?.totals.previous
   const cur = (r: SummaryResult) => r.data?.totals.current
-  const tile = "block rounded-2xl transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-brand-500"
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      <Link href="/bi?period=today" className={tile}>
+      <PulseLink href="/bi?period=today">
         <KpiTile
           label={t.home.today}
           value={cur(today) ? formatEurWhole(cur(today)!.sales) : "—"}
           delta={null}
           foot={ly(today) ? t.home.todayFoot(formatEurWhole(ly(today)!.sales)) : ""}
         />
-      </Link>
-      <Link href="/bi?period=yesterday" className={tile}>
+      </PulseLink>
+      <PulseLink href="/bi?period=yesterday">
         <KpiTile
           label={t.home.yesterday}
           value={cur(yesterday) ? formatEurWhole(cur(yesterday)!.sales) : "—"}
           delta={<Delta value={cur(yesterday) && ly(yesterday) ? growth(cur(yesterday)!.sales, ly(yesterday)!.sales) : null} kind="pct" na={k.na} />}
           foot={t.home.vsLy}
         />
-      </Link>
-      <Link href={`/bi?${m.query}`} className={tile}>
+      </PulseLink>
+      <PulseLink href={`/bi?${m.query}`}>
         <KpiTile
           label={m.label}
           value={formatEurWhole(month.data.totals.current.sales)}
@@ -237,8 +236,8 @@ async function Pulse({ t }: { t: Dict }) {
           badge="LFL"
           badgeTitle={k.lflTitle}
         />
-      </Link>
-      <Link href={`/bi?${m.query}`} className={tile}>
+      </PulseLink>
+      <PulseLink href={`/bi?${m.query}`}>
         <KpiTile
           label={t.home.margin}
           value={month.data.totals.current.marginPct === null ? "—" : formatPct(month.data.totals.current.marginPct)}
@@ -255,7 +254,7 @@ async function Pulse({ t }: { t: Dict }) {
           }
           foot={t.home.marginFoot(m.period, formatEurWhole(month.data.totals.current.grossProfit))}
         />
-      </Link>
+      </PulseLink>
     </div>
   )
 }
@@ -314,6 +313,27 @@ async function BiModuleCard({ t }: { t: Dict }) {
   const month = await summaryFor(m.range)
   const stat = month.data ? t.home.biStat(formatEurWhole(month.data.totals.current.sales), m.period) : ""
   return <ModuleCard href="/bi" icon={Gauge} title={t.home.biTitle} body={t.home.biBody} stat={stat} open={t.home.open} />
+}
+
+// ---------- KPI tile link: lifts, glows and shows an arrow on hover (opens the period in BI) ----------
+
+function PulseLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="group relative block rounded-2xl transition-[transform,box-shadow] duration-300 ease-out hover:shadow-lg hover:shadow-brand-500/10 focus-visible:outline-2 focus-visible:outline-brand-500 motion-safe:hover:-translate-y-1 [&>div]:transition-colors [&>div]:duration-300 hover:[&>div]:border-brand-300 dark:hover:[&>div]:border-brand-500/40"
+    >
+      {children}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-br from-brand-500/0 to-transparent transition-colors duration-300 group-hover:from-brand-500/[0.06]"
+      />
+      <ArrowUpRight
+        aria-hidden
+        className="pointer-events-none absolute right-3.5 bottom-3.5 size-4 translate-y-1 -translate-x-1 text-brand-600 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100 dark:text-brand-400"
+      />
+    </Link>
+  )
 }
 
 // ---------- module entry card ----------
