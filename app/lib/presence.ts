@@ -13,12 +13,16 @@ export const AWAY_MS = 15 * 60_000
  * Marks the user as seen now. Raw SQL on purpose: a Prisma update would also bump the automatic
  * updatedAt ("profile changed"). The WHERE clause skips the write if it already happened in the last
  * 50 seconds, so page loads and pings cost at most one write a minute per user.
+ *
+ * The column has no time zone and Prisma reads it as UTC, so the value must be UTC: plain now() would
+ * store the database server's local time (e.g. Kosovo time on the Windows server = 2 hours "ahead",
+ * and everyone would look online for 2 hours).
  */
 export async function touchPresence(userId: string) {
   await prisma.$executeRaw`
-    UPDATE "users" SET "lastSeenAt" = now()
+    UPDATE "users" SET "lastSeenAt" = (now() AT TIME ZONE 'UTC')
     WHERE "userId" = ${userId}::uuid
-      AND ("lastSeenAt" IS NULL OR "lastSeenAt" < now() - interval '50 seconds')`
+      AND ("lastSeenAt" IS NULL OR "lastSeenAt" < (now() AT TIME ZONE 'UTC') - interval '50 seconds')`
 }
 
 export type Presence = "online" | "away" | "offline"
