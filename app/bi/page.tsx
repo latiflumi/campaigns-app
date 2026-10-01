@@ -3,7 +3,7 @@ import { Suspense } from "react"
 import { requireSession } from "@/app/lib/session"
 import { getBiAttributes, getBiCategories, getBiProducts, getBiStores, getBiSummary, settle } from "@/app/lib/bi/erp"
 import { brandKey, brandOf } from "@/app/lib/bi/brands"
-import { productFilterText, productOptions } from "@/app/lib/bi/attributes"
+import { keepSelected, productFilterText, productOptions } from "@/app/lib/bi/attributes"
 import { compareLabel, compareParams, filterQuery, formatRange, hasProductFilter, parseFilters, productFilter, rangeDays } from "@/app/lib/bi/filters"
 import FilterBar from "./_components/FilterBar"
 import { BiPendingProvider, PendingArea } from "./_components/BiPending"
@@ -28,11 +28,9 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
   const { from, to } = filters
 
   // Brands come from the store names (the ERP has no brand field)
-  const [storesRes, attrs] = await Promise.all([settle(getBiStores()), settle(getBiAttributes())])
+  const [storesRes, allAttrs] = await Promise.all([settle(getBiStores()), settle(getBiAttributes())])
   const allStores = storesRes.data ?? []
-  const options = attrs.data ? productOptions(attrs.data, t) : null
   const pf = productFilter(filters)
-  const productText = productFilterText(filters, options)
   const brands = [...new Set(allStores.map((s) => brandOf(s.name)))].sort().map((label) => ({ key: brandKey(label), label }))
   const brandLabel = brands.find((b) => b.key === filters.brand)?.label
   const scoped = brandLabel ? allStores.filter((s) => brandKey(brandOf(s.name)) === filters.brand) : allStores
@@ -40,11 +38,17 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
   const stores = brandLabel ? scoped.map((s) => s.orgId).join(",") || "0" : ""
 
   const range = { from, to, ...compareParams(filters), stores, ...pf }
-  const [summary, categories, products] = await Promise.all([
+  // Filter options for this selection: only what these stores sold, narrowed by the other product filters
+  const narrowed = stores !== "" || hasProductFilter(pf)
+  const [summary, categories, products, attrs] = await Promise.all([
     settle(getBiSummary(range)),
     settle(getBiCategories(range)),
     settle(getBiProducts({ from, to, stores, ...pf }, TOP_PRODUCTS)),
+    narrowed ? settle(getBiAttributes(stores, pf)) : Promise.resolve(allAttrs),
   ])
+  const allOptions = allAttrs.data ? productOptions(allAttrs.data, t) : null
+  const options = attrs.data ? keepSelected(productOptions(attrs.data, t), allOptions, filters) : allOptions
+  const productText = productFilterText(filters, allOptions)
 
   const compareText = compareLabel(filters, t)
   const query = filterQuery(filters)

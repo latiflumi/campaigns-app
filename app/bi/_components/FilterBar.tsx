@@ -7,10 +7,11 @@
 import { useTransition } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "motion/react"
-import { ChevronDown, Loader2, X } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { PRESETS, QUICK_PRESETS, filterQuery, type BiFilters, type Preset, type UrlFilters } from "@/app/lib/bi/filters"
-import type { OptionGroup, ProductOptions } from "@/app/lib/bi/attributes"
+import type { ProductOptions } from "@/app/lib/bi/attributes"
 import DateRangePicker from "./DateRangePicker"
+import FilterPicker from "./FilterPicker"
 import { cx } from "./ui"
 import { useT } from "@/app/lib/i18n/client"
 import { useBiPending } from "./BiPending"
@@ -55,45 +56,6 @@ function Segmented<T extends string>({ options, value, onChange, id }: { options
   )
 }
 
-/** Native select styled like the rest of the bar; highlighted when it narrows the view. */
-function Select({ label, allLabel, value, groups, onChange, className }: { label: string; allLabel: string; value: string; groups: OptionGroup[]; onChange: (v: string) => void; className?: string }) {
-  return (
-    <div className={cx("relative", className)}>
-      <select
-        aria-label={label}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cx(
-          "h-9 w-full cursor-pointer appearance-none rounded-xl border bg-neutral-50/60 pr-8 pl-3 text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none dark:bg-neutral-800/50",
-          value !== "all"
-            ? "border-brand-200 text-brand-700 dark:border-brand-500/30 dark:text-brand-300"
-            : "border-neutral-200 text-neutral-700 dark:border-neutral-700 dark:text-neutral-200",
-        )}
-      >
-        <option value="all">{allLabel}</option>
-        {groups.map((g, i) =>
-          g.label ? (
-            <optgroup key={g.label} label={g.label}>
-              {g.options.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </optgroup>
-          ) : (
-            g.options.map((o) => (
-              <option key={`${i}-${o.value}`} value={o.value}>
-                {o.label}
-              </option>
-            ))
-          ),
-        )}
-      </select>
-      <ChevronDown className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-neutral-400" />
-    </div>
-  )
-}
-
 export default function FilterBar({ filters, brands, productOptions }: Props) {
   const router = useRouter()
   const t = useT()
@@ -120,7 +82,7 @@ export default function FilterBar({ filters, brands, productOptions }: Props) {
         />
         <DateRangePicker value={filters} onApply={(v) => update(v)} />
         {brands && (
-          <Select
+          <FilterPicker
             label={t.bi.filter.storeChain}
             allLabel={t.bi.filter.allStores}
             value={filters.brand}
@@ -134,9 +96,9 @@ export default function FilterBar({ filters, brands, productOptions }: Props) {
       {productOptions && (
         <div className="grid grid-cols-2 gap-2 border-t border-neutral-100 pt-2 sm:flex sm:items-center dark:border-neutral-800">
           <span className="col-span-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase sm:mr-1">{t.bi.filter.products}</span>
-          <Select label={t.bi.filter.gender} allLabel={t.bi.filter.allGenders} value={filters.gender} groups={[{ options: productOptions.genders }]} onChange={(gender) => update({ gender })} className="sm:w-40" />
-          <Select label={t.bi.filter.season} allLabel={t.bi.filter.allSeasons} value={filters.season} groups={productOptions.seasons} onChange={(season) => update({ season })} className="sm:w-52" />
-          <Select label={t.bi.filter.productBrand} allLabel={t.bi.filter.allBrands} value={filters.pbrand} groups={[{ options: productOptions.brands }]} onChange={(pbrand) => update({ pbrand })} className="col-span-2 sm:w-48" />
+          <FilterPicker label={t.bi.filter.gender} allLabel={t.bi.filter.allGenders} value={filters.gender} groups={[{ options: productOptions.genders }]} onChange={(gender) => update({ gender })} className="sm:w-40" />
+          <FilterPicker label={t.bi.filter.season} allLabel={t.bi.filter.allSeasons} value={filters.season} groups={productOptions.seasons} onChange={(season) => update({ season })} className="sm:w-52" />
+          <FilterPicker label={t.bi.filter.productBrand} allLabel={t.bi.filter.allBrands} value={filters.pbrand} groups={[{ options: productOptions.brands }]} onChange={(pbrand) => update({ pbrand })} className="col-span-2 sm:w-48" />
           {productActive && (
             <button
               type="button"

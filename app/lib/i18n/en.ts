@@ -473,6 +473,9 @@ export const en = {
       collectionYear: "Collection year",
       collection: "Collection",
       collections: (yy: string) => `20${yy} collections`,
+      search: "Search…",
+      noMatches: "No matches",
+      notSoldHere: "not sold in this selection",
     },
 
     kpi: {

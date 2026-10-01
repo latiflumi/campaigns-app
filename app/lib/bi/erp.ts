@@ -38,8 +38,11 @@ export const getBiProducts = (r: Omit<Range, "compare" | "cmpFrom" | "cmpTo">, l
 export const getBiStockAlerts = (stores: string | undefined, limit = 8, filter: ProductFilter = {}) =>
   get<BiStockAlerts>("/bi/stock-alerts", { stores, limit, ...filter })
 export const getBiSegments = (r: Range) => get<BiSegments>("/bi/segments", { ...r })
-/** Filter options (genders, seasons, brands) sold chain-wide in the last 365 days. */
-export const getBiAttributes = () => get<BiAttributes>("/bi/attributes")
+/**
+ * Filter options (genders, seasons, brands) sold in the last 365 days, chain-wide by default. With stores
+ * and/or a product filter the lists are faceted: each is narrowed by the store scope and the other filters.
+ */
+export const getBiAttributes = (stores = "", filter: ProductFilter = {}) => get<BiAttributes>("/bi/attributes", { stores, ...filter })
 
 /** Awaits a promise without throwing, so one failing section doesn't take the whole page down. */
 export async function settle<T>(p: Promise<T>): Promise<{ data: T; error: null } | { data: null; error: string }> {

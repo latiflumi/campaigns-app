@@ -19,6 +19,8 @@ export function seasonText(label: string | null | undefined, t: Dict) {
 export interface Option {
   value: string
   label: string
+  /** Share of sales (0–100) within its list, for the picker's bars; absent when unknown */
+  share?: number
 }
 export interface OptionGroup {
   label?: string
@@ -37,17 +39,46 @@ export interface ProductOptions {
 export function productOptions(a: BiAttributes, t: Dict, now = new Date()): ProductOptions {
   const since = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 18, 1))
   const minKey = `${String(since.getUTCFullYear()).slice(2)}${String(since.getUTCMonth() + 1).padStart(2, "0")}`
+  // Shares are of each list's own total; for seasons NOOS + the collection years cover all sales once
+  const share = (part: number, total: number) => (total > 0 ? (part / total) * 100 : undefined)
+  const genderTotal = a.genders.reduce((n, g) => n + g.sales, 0)
+  const brandTotal = a.brands.reduce((n, b) => n + b.sales, 0)
+  const seasonTotal = a.seasons.noos.sales + a.seasons.years.reduce((n, y) => n + y.sales, 0)
   return {
-    genders: a.genders.map((g) => ({ value: String(g.id), label: genderLabel(g.name, t) ?? g.name })),
+    genders: a.genders.map((g) => ({ value: String(g.id), label: genderLabel(g.name, t) ?? g.name, share: share(g.sales, genderTotal) })),
     seasons: [
-      { options: [{ value: a.seasons.noos.key, label: t.bi.filter.noos }] },
-      { label: t.bi.filter.collectionYear, options: a.seasons.years.map((y) => ({ value: y.key, label: t.bi.filter.collections(y.key) })) },
+      { options: [{ value: a.seasons.noos.key, label: t.bi.filter.noos, share: share(a.seasons.noos.sales, seasonTotal) }] },
+      {
+        label: t.bi.filter.collectionYear,
+        options: a.seasons.years.map((y) => ({ value: y.key, label: t.bi.filter.collections(y.key), share: share(y.sales, seasonTotal) })),
+      },
       {
         label: t.bi.filter.collection,
-        options: a.seasons.collections.filter((c) => c.key >= minKey).map((c) => ({ value: c.key, label: seasonText(c.label, t) ?? c.key })),
+        options: a.seasons.collections
+          .filter((c) => c.key >= minKey)
+          .map((c) => ({ value: c.key, label: seasonText(c.label, t) ?? c.key, share: share(c.sales, seasonTotal) })),
       },
     ],
-    brands: a.brands.filter((b) => b.sales > 0).map((b) => ({ value: b.key, label: b.name })),
+    brands: a.brands.filter((b) => b.sales > 0).map((b) => ({ value: b.key, label: b.name, share: share(b.sales, brandTotal) })),
+  }
+}
+
+/**
+ * Faceted options can drop a value that is still selected (e.g. Jack & Jones chosen, then s.Oliver stores).
+ * Keep it in its list, labelled from the chain-wide options, so the user sees it and can clear it.
+ */
+export function keepSelected(o: ProductOptions, all: ProductOptions | null, f: { gender: string; season: string; pbrand: string }): ProductOptions {
+  const keep = (list: Option[], value: string, from: Option[] | undefined) =>
+    value === "all" || list.some((x) => x.value === value)
+      ? list
+      : // no share: it sold nothing in this selection
+        [...list, { value, label: from?.find((x) => x.value === value)?.label ?? value }]
+  const seasonListed = o.seasons.some((g) => g.options.some((x) => x.value === f.season))
+  const seasonFrom = all?.seasons.flatMap((g) => g.options)
+  return {
+    genders: keep(o.genders, f.gender, all?.genders),
+    brands: keep(o.brands, f.pbrand, all?.brands),
+    seasons: f.season === "all" || seasonListed ? o.seasons : [...o.seasons, { options: keep([], f.season, seasonFrom) }],
   }
 }
 

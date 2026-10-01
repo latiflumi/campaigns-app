@@ -464,6 +464,9 @@ export const sq: Dict = {
       collectionYear: "Viti i koleksionit",
       collection: "Koleksioni",
       collections: (yy: string) => `Koleksionet 20${yy}`,
+      search: "Kërko…",
+      noMatches: "Asnjë rezultat",
+      notSoldHere: "pa shitje në këtë përzgjedhje",
     },
 
     kpi: {

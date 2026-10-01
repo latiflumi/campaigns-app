@@ -7,7 +7,7 @@ import { requireSession } from "@/app/lib/session"
 import { prisma } from "@/app/lib/prisma"
 import { getBiAttributes, getBiCategories, getBiProducts, getBiStores, getBiSummary, settle } from "@/app/lib/bi/erp"
 import { brandOf, locationOf } from "@/app/lib/bi/brands"
-import { productFilterText, productOptions } from "@/app/lib/bi/attributes"
+import { keepSelected, productFilterText, productOptions } from "@/app/lib/bi/attributes"
 import { compareLabel, compareParams, filterQuery, parseFilters, productFilter, rangeDays } from "@/app/lib/bi/filters"
 import { formatDay } from "../../../campaigns/_components/campaign-utils"
 import { StatusPill } from "../../../campaigns/_components/parts"
@@ -48,17 +48,19 @@ export default async function BiStorePage({
   const range = { from, to, ...compare, stores, ...pf }
   const chainRange = { from, to, ...compare, stores: "", ...pf }
 
-  const [meta, summary, chain, categories, chainCategories, products, attrs] = await Promise.all([
+  const [meta, summary, chain, categories, chainCategories, products, attrs, allAttrs] = await Promise.all([
     settle(getBiStores()),
     settle(getBiSummary(range)),
     settle(getBiSummary(chainRange)), // same request as the overview, so usually cached
     settle(getBiCategories(range)),
     settle(getBiCategories(chainRange)),
     settle(getBiProducts({ from, to, stores, ...pf }, TOP_PRODUCTS)),
+    settle(getBiAttributes(stores, pf)), // only what this store sold, narrowed by the other filters
     settle(getBiAttributes()),
   ])
-  const options = attrs.data ? productOptions(attrs.data, t) : null
-  const productText = productFilterText(filters, options)
+  const allOptions = allAttrs.data ? productOptions(allAttrs.data, t) : null
+  const options = attrs.data ? keepSelected(productOptions(attrs.data, t), allOptions, filters) : allOptions
+  const productText = productFilterText(filters, allOptions)
 
   const store = meta.data?.find((s) => s.orgId === orgId)
   if (meta.data && !store) notFound()
