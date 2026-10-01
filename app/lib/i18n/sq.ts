@@ -549,6 +549,9 @@ export const sq: Dict = {
       sorts: { sales: "Shitjet", units: "Njësi", margin: "Marzha", stock: "Mbulimi më i ulët" },
       cover: (w: string) => `${w} javë mbulim`,
       noSales: "pa shitje neto",
+      noCost: "pa kosto",
+      noCostTitle: "Ky produkt nuk ka kosto blerjeje në ERP, prandaj marzha nuk mund të llogaritet.",
+      partCost: "pjesërisht pa kosto",
     },
     stock: {
       title: "Paralajmërime stoku",

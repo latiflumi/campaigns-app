@@ -558,6 +558,9 @@ export const en = {
       sorts: { sales: "Sales", units: "Units", margin: "Margin", stock: "Lowest cover" },
       cover: (w: string) => `${w} wk cover`,
       noSales: "no net sales",
+      noCost: "no cost",
+      noCostTitle: "No purchase cost in the ERP for this product, so its margin can't be calculated.",
+      partCost: "part without cost",
     },
     stock: {
       title: "Stock alerts",

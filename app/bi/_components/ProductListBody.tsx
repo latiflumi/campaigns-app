@@ -47,7 +47,9 @@ export default function ProductListBody({ products, days }: { products: BiProduc
       case "units":
         return { main: pr.units(formatInt(p.units)), sub: formatEurWhole(p.sales) }
       case "margin":
-        return { main: p.marginPct === null ? "—" : formatPct(p.marginPct), sub: formatEurWhole(p.sales) }
+        // A product sold without a cost in the ERP would read as 100%: say so instead
+        if (p.marginPct === null) return { main: p.costMissing ? pr.noCost : "—", sub: formatEurWhole(p.sales), title: p.costMissing ? pr.noCostTitle : undefined }
+        return { main: formatPct(p.marginPct), sub: p.costMissing ? `${formatEurWhole(p.sales)} · ${pr.partCost}` : formatEurWhole(p.sales) }
       case "stock":
         return { main: coverText(p), sub: pr.inStock(formatInt(p.stockOnHand)) }
       default:
@@ -100,8 +102,8 @@ export default function ProductListBody({ products, days }: { products: BiProduc
                 </span>
                 <AttrChips item={p} t={t} />
               </span>
-              <span className="text-right tabular-nums">
-                <span className="block text-sm font-semibold text-neutral-900 dark:text-neutral-100">{f.main}</span>
+              <span className="text-right tabular-nums" title={"title" in f ? f.title : undefined}>
+                <span className={cx("block text-sm font-semibold", "title" in f && f.title ? "text-neutral-400 dark:text-neutral-500" : "text-neutral-900 dark:text-neutral-100")}>{f.main}</span>
                 <span className="block text-[11px] text-neutral-500">{f.sub}</span>
               </span>
             </li>

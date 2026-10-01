@@ -107,7 +107,9 @@ export interface BiProduct extends BiItemAttributes {
   sales: number
   netSales: number
   units: number
-  marginPct: number | null
+  marginPct: number | null // over the lines that have a cost in the ERP
+  /** Some (or all) sales had no cost in the ERP; missing from older erp-api builds */
+  costMissing?: boolean
   stockOnHand: number
 }
 
