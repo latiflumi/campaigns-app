@@ -232,7 +232,7 @@ export async function SegmentsSection({ range, compareText }: { range: Range; co
 /** How many top products the BI pages load; the list scrolls inside its card. */
 export const TOP_PRODUCTS = 50
 
-export async function ProductList({ products, title, days }: { products: BiProduct[]; title?: string; days: number }) {
+export async function ProductList({ products, title, days, showStores = true }: { products: BiProduct[]; title?: string; days: number; showStores?: boolean }) {
   const t = await getT()
   const pr = t.bi.products
   return (
@@ -241,7 +241,7 @@ export async function ProductList({ products, title, days }: { products: BiProdu
       {products.length === 0 ? (
         <p className="px-5 py-8 text-sm text-neutral-500">{pr.none}</p>
       ) : (
-        <ProductListBody products={products} days={days} />
+        <ProductListBody products={products} days={days} showStores={showStores} />
       )}
     </Card>
   )

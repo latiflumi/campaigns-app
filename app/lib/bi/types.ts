@@ -111,6 +111,8 @@ export interface BiProduct extends BiItemAttributes {
   /** Some (or all) sales had no cost in the ERP; missing from older erp-api builds */
   costMissing?: boolean
   stockOnHand: number
+  /** Units sold per store in the period, biggest first; missing from older erp-api builds */
+  stores?: { orgId: number; storeName: string; units: number }[]
 }
 
 export interface BiStockAlert extends BiItemAttributes {

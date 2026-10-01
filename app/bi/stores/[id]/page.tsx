@@ -156,7 +156,7 @@ export default async function BiStorePage({
       </div>
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-        {products.data ? <ProductList products={products.data} title={t.bi.products.titleHere} days={rangeDays(from, to)} /> : <ErrorCard message={products.error!} />}
+        {products.data ? <ProductList products={products.data} title={t.bi.products.titleHere} days={rangeDays(from, to)} showStores={false} /> : <ErrorCard message={products.error!} />}
         <Suspense fallback={<SkeletonCard height="h-80" />}>
           <StockAlertsSection stores={stores} showStore={false} query={query} filter={pf} />
         </Suspense>

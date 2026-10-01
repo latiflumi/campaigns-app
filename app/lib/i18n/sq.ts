@@ -574,6 +574,7 @@ export const sq: Dict = {
       cover: (w: string) => `${w} javë mbulim`,
       noSales: "pa shitje neto",
       noCost: "pa kosto",
+      soldIn: "Njësi të shitura sipas dyqanit në këtë periudhë:",
       noCostTitle: "Ky produkt nuk ka kosto blerjeje në ERP, prandaj marzha nuk mund të llogaritet.",
       partCost: "pjesërisht pa kosto",
     },

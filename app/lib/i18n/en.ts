@@ -583,6 +583,7 @@ export const en = {
       cover: (w: string) => `${w} wk cover`,
       noSales: "no net sales",
       noCost: "no cost",
+      soldIn: "Units sold per store in this period:",
       noCostTitle: "No purchase cost in the ERP for this product, so its margin can't be calculated.",
       partCost: "part without cost",
     },

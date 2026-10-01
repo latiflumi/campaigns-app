@@ -5,6 +5,8 @@
 // from erp-api, re-sorted here; it scrolls inside its card like the stock alerts next to it.
 // Weeks of cover = stock now ÷ average weekly units sold in the selected period.
 import { useState } from "react"
+import { MapPin } from "lucide-react"
+import { cleanName, locationOf } from "@/app/lib/bi/brands"
 import type { BiProduct } from "@/app/lib/bi/types"
 import ProductThumb from "@/app/ProductThumb"
 import { useT } from "@/app/lib/i18n/client"
@@ -22,7 +24,38 @@ const weeksOfCover = (p: BiProduct, days: number) => {
   return perWeek > 0 ? Math.max(0, p.stockOnHand) / perWeek : null
 }
 
-export default function ProductListBody({ products, days }: { products: BiProduct[]; days: number }) {
+/** Stores shown on the "sold in" line before "+N" */
+const STORES_SHOWN = 3
+
+/**
+ * "Gjakove 4 · Royal Mall 3 · Albi Mall 3 · +7". Short store names (without the chain) unless two
+ * stores of different chains share one, then the full name. The full list is in the tooltip.
+ */
+function SoldIn({ stores, label }: { stores: NonNullable<BiProduct["stores"]>; label: string }) {
+  if (stores.length === 0) return null
+  const short = stores.map((s) => locationOf(s.storeName))
+  const clash = new Set(short.filter((n, i) => short.indexOf(n) !== i))
+  const name = (i: number) => (clash.has(short[i]) ? cleanName(stores[i].storeName) : short[i])
+  const units = (n: number) => String(n).replace(".", ",")
+  const tooltip = `${label}\n${stores.map((s) => `${cleanName(s.storeName)}: ${units(s.units)}`).join("\n")}`
+  const rest = stores.length - STORES_SHOWN
+  return (
+    <span className="mt-1 flex items-center gap-1 text-[11px] text-neutral-500 dark:text-neutral-400" title={tooltip}>
+      <MapPin className="size-3 shrink-0 text-neutral-400" aria-hidden />
+      <span className="truncate">
+        {stores.slice(0, STORES_SHOWN).map((s, i) => (
+          <span key={s.orgId}>
+            {i > 0 && " · "}
+            {name(i)} <span className="font-semibold text-neutral-700 tabular-nums dark:text-neutral-200">{units(s.units)}</span>
+          </span>
+        ))}
+        {rest > 0 && <span className="text-neutral-400"> · +{rest}</span>}
+      </span>
+    </span>
+  )
+}
+
+export default function ProductListBody({ products, days, showStores = true }: { products: BiProduct[]; days: number; showStores?: boolean }) {
   const t = useT()
   const pr = t.bi.products
   const [sort, setSort] = useState<SortKey>("sales")
@@ -100,6 +133,7 @@ export default function ProductListBody({ products, days }: { products: BiProduc
                   {p.category && ` · ${p.category}`}
                   {sort !== "stock" && ` · ${pr.inStock(formatInt(p.stockOnHand))}`}
                 </span>
+                {showStores && p.stores && <SoldIn stores={p.stores} label={pr.soldIn} />}
                 <AttrChips item={p} t={t} />
               </span>
               <span className="text-right tabular-nums" title={"title" in f ? f.title : undefined}>
