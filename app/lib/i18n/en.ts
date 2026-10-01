@@ -365,6 +365,27 @@ export const en = {
     Unisex: "Unisex",
   } as Record<string, string>,
 
+  users: {
+    title: "Users",
+    subtitle: "Who's using the app right now. Updates every 30 seconds.",
+    menu: "Users",
+    online: "Online",
+    away: "Away",
+    offline: "Offline",
+    counts: (online: number, away: number, total: number) => `${online} online · ${away} away · ${total} users`,
+    onlineNow: (n: number) => `${n} online`,
+    you: "you",
+    roles: { ADMIN: "Admin", VIEWER: "Viewer" } as Record<string, string>,
+    lastSeen: {
+      now: "active now",
+      minutes: (n: number) => `last seen ${n} min ago`,
+      hours: (n: number) => (n === 1 ? "last seen 1 hour ago" : `last seen ${n} hours ago`),
+      yesterday: "last seen yesterday",
+      days: (n: number) => `last seen ${n} days ago`,
+      never: "not seen since presence was added",
+    },
+  },
+
   home: {
     greeting: { morning: (n: string) => `Good morning, ${n}`, afternoon: (n: string) => `Good afternoon, ${n}`, evening: (n: string) => `Good evening, ${n}` },
     subtitle: "Here's how the stores are doing.",

@@ -356,6 +356,27 @@ export const sq: Dict = {
   // ERP labels are already Albanian
   genders: {},
 
+  users: {
+    title: "Përdoruesit",
+    subtitle: "Kush po e përdor aplikacionin tani. Përditësohet çdo 30 sekonda.",
+    menu: "Përdoruesit",
+    online: "Në linjë",
+    away: "Larg",
+    offline: "Jashtë linje",
+    counts: (online: number, away: number, total: number) => `${online} në linjë · ${away} larg · ${total} përdorues`,
+    onlineNow: (n: number) => `${n} në linjë`,
+    you: "ju",
+    roles: { ADMIN: "Administrator", VIEWER: "Shikues" },
+    lastSeen: {
+      now: "aktiv tani",
+      minutes: (n: number) => `parë para ${n} min`,
+      hours: (n: number) => (n === 1 ? "parë para 1 ore" : `parë para ${n} orësh`),
+      yesterday: "parë dje",
+      days: (n: number) => `parë para ${n} ditësh`,
+      never: "nuk është parë që kur u shtua kjo veçori",
+    },
+  },
+
   home: {
     greeting: { morning: (n: string) => `Mirëmëngjes, ${n}`, afternoon: (n: string) => `Mirëdita, ${n}`, evening: (n: string) => `Mirëmbrëma, ${n}` },
     subtitle: "Ja si po ecin dyqanet.",

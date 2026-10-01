@@ -76,6 +76,10 @@ model User {
   avatarType      String?
   avatarUpdatedAt DateTime?
 
+  // Presence: last time the user had the app open (page load or a once-a-minute ping, see
+  // app/lib/presence.ts). Written with raw SQL so it doesn't bump updatedAt.
+  lastSeenAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { AnimatePresence, motion } from "motion/react"
-import { LogOut, UserRound } from "lucide-react"
+import { LogOut, UserRound, UsersRound } from "lucide-react"
 import UserAvatar from "./UserAvatar"
 import { logoutAction } from "./actions/auth"
 import { useT } from "./lib/i18n/client"
@@ -16,10 +16,13 @@ export default function UserMenu({
   name,
   userName,
   avatarSrc,
+  isAdmin = false,
 }: {
   name: string
   userName: string
   avatarSrc: string | null
+  /** Admins also get the Users (who's online) page */
+  isAdmin?: boolean
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
@@ -119,6 +122,18 @@ export default function UserMenu({
               <UserRound className="size-4 text-neutral-400" />
               {t.userMenu.viewProfile}
             </Link>
+
+            {isAdmin && (
+              <Link
+                href="/users"
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                className={`${item} text-neutral-700 hover:bg-neutral-100 focus-visible:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 dark:focus-visible:bg-neutral-800`}
+              >
+                <UsersRound className="size-4 text-neutral-400" />
+                {t.users.menu}
+              </Link>
+            )}
 
             {/* Posts to the logoutAction server action, which clears the auth cookies and redirects */}
             <form action={logoutAction}>

@@ -9,6 +9,9 @@ import { requireSession } from "./lib/session"
 import { canManageCampaigns } from "./lib/roles"
 import { syncCampaignStatuses } from "./lib/campaign-status"
 import { getT } from "./lib/i18n/server"
+import { ONLINE_MS } from "./lib/presence"
+import { avatarUrl } from "./lib/avatar"
+import UserAvatar from "./UserAvatar"
 import type { Dict } from "./lib/i18n/dictionaries"
 import { getBiStockAlerts, getBiSummary, settle } from "./lib/bi/erp"
 import { comparisonRange, presetRange } from "./lib/bi/filters"
@@ -72,6 +75,15 @@ export default async function HomePage() {
   ])
   const firstName = capitalise(me?.fullName?.trim().split(/\s+/)[0] || session.userName)
 
+  // Admins: who has the app open right now (links to the Users page)
+  const online = canManage
+    ? await prisma.user.findMany({
+        where: { lastSeenAt: { gte: new Date(now.getTime() - ONLINE_MS) } },
+        select: { userId: true, userName: true, fullName: true, avatarUpdatedAt: true },
+        orderBy: { lastSeenAt: "desc" },
+      })
+    : []
+
   // Campaign timelines, same rules as the campaigns page
   const rows = campaigns.map((c) => {
     const dates = { startDate: c.startDate?.toISOString() ?? null, endDate: c.endDate?.toISOString() ?? null }
@@ -90,13 +102,34 @@ export default async function HomePage() {
           <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{t.home.subtitle}</p>
         </div>
         {canManage && (
+          <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+            <Link
+              href="/users"
+              className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white py-1.5 pr-3 pl-1.5 text-sm font-medium text-neutral-700 shadow-xs transition-colors hover:border-emerald-300 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200 dark:hover:border-emerald-500/40"
+            >
+              <span className="flex -space-x-2">
+                {online.slice(0, 4).map((u) => (
+                  <UserAvatar
+                    key={u.userId}
+                    name={u.fullName?.trim() || u.userName}
+                    src={u.avatarUpdatedAt ? avatarUrl(u.userId, u.avatarUpdatedAt) : null}
+                    className="size-7 text-[11px] ring-2 ring-white dark:ring-neutral-900"
+                  />
+                ))}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="size-2 animate-pulse rounded-full bg-emerald-500" aria-hidden />
+                {t.users.onlineNow(online.length)}
+              </span>
+            </Link>
           <Link
             href="/campaigns/new"
-            className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 sm:self-auto dark:bg-brand-500 dark:hover:bg-brand-400"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 sm:self-auto dark:bg-brand-500 dark:hover:bg-brand-400"
           >
             <Plus className="size-4" />
             {t.campaigns.newCampaign}
           </Link>
+          </div>
         )}
       </div>
 

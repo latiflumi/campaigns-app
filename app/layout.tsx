@@ -8,6 +8,8 @@ import { getSession } from './lib/session'
 import { prisma } from './lib/prisma'
 import { avatarUrl } from './lib/avatar'
 import UserMenu from './UserMenu'
+import PresencePing from './PresencePing'
+import { touchPresence } from './lib/presence'
 import ThemeToggle from './ThemeToggle'
 import AppToaster from './AppToaster'
 import LanguageToggle from './LanguageToggle'
@@ -50,11 +52,15 @@ export default async function RootLayout({
   const me = showHeader
     ? await prisma.user.findUnique({
         where: { userId: session.userId },
-        select: { fullName: true, avatarUpdatedAt: true },
+        select: { fullName: true, avatarUpdatedAt: true, role: true },
       })
     : null;
   const displayName = me?.fullName || session?.userName || '';
   const avatarSrc = session && me?.avatarUpdatedAt ? avatarUrl(session.userId, me.avatarUpdatedAt) : null;
+  const isAdmin = me?.role === 'ADMIN'; // admins get the Users page in the avatar menu
+
+  // Presence: mark this user as seen (at most one write a minute; never blocks or breaks the page)
+  if (showHeader) touchPresence(session.userId).catch(() => {});
 
   return (
     <html lang={locale} className={roboto.variable} data-theme={theme} suppressHydrationWarning>
@@ -91,7 +97,8 @@ export default async function RootLayout({
                 <div className="flex items-center gap-3">
                   <LanguageToggle className="hidden sm:inline-flex" />
                   <ThemeToggle className="text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white" />
-                  <UserMenu name={displayName} userName={session.userName} avatarSrc={avatarSrc} />
+                  <UserMenu name={displayName} userName={session.userName} avatarSrc={avatarSrc} isAdmin={isAdmin} />
+                  <PresencePing />
                 </div>
               </div>
             </div>
