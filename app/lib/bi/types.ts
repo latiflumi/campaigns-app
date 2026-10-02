@@ -71,6 +71,11 @@ export interface BiCategorySide {
   units: number
   marginPct: number | null
   sharePct: number | null
+  /** net sales − cost; missing from older erp-api builds */
+  grossProfit?: number
+  /** list value incl. VAT and markdown %, categories only (null for segments) */
+  grossList?: number | null
+  markdownPct?: number | null
 }
 
 /** Stock on hand now in the selected stores; missing from erp-api builds before stock per category */

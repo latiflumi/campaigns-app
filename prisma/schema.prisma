@@ -80,8 +80,66 @@ model User {
   // app/lib/presence.ts). Written with raw SQL so it doesn't bump updatedAt.
   lastSeenAt DateTime?
 
+  // Alerts the user subscribed to, and the notifications they produced (app/lib/alerts)
+  alertRules    AlertRule[]
+  notifications Notification[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+/// What an alert watches. Settings per type live in AlertRule.params (see app/lib/alerts/types.ts).
+enum AlertType {
+  SALES_DROP
+  OUT_OF_STOCK
+  CAMPAIGN
+}
+
+/// One alert a user subscribed to ("tell me when …").
+model AlertRule {
+  id     String    @id @default(cuid())
+  userId String    @db.Uuid
+  user   User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  type   AlertType
+  params Json
+  active Boolean   @default(true)
+
+  states        AlertState[]
+  notifications Notification[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("alert_rules")
+}
+
+/// What a rule has already reported, so the same thing isn't sent again (cooldown / dedupe).
+model AlertState {
+  id          String    @id @default(cuid())
+  ruleId      String
+  rule        AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  subjectKey  String // e.g. "18:254440" (store:article) or "18:yesterday:2026-10-01"
+  lastFiredAt DateTime  @default(now())
+
+  @@unique([ruleId, subjectKey])
+  @@map("alert_states")
+}
+
+/// A message in someone's bell. Stored as data (kind + data), turned into text in the reader's language.
+model Notification {
+  id        String     @id @default(cuid())
+  userId    String     @db.Uuid
+  user      User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  ruleId    String?
+  rule      AlertRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  kind      String
+  data      Json
+  readAt    DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([userId, createdAt])
+  @@map("notifications")
 }

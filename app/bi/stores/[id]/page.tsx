@@ -12,6 +12,7 @@ import { compareLabel, compareParams, filterQuery, parseFilters, productFilter, 
 import { formatDay } from "../../../campaigns/_components/campaign-utils"
 import { StatusPill } from "../../../campaigns/_components/parts"
 import FilterBar from "../../_components/FilterBar"
+import CategoryTable from "../../_components/CategoryTable"
 import { BiPendingProvider, PendingArea } from "../../_components/BiPending"
 import { CategoriesVsChain, KpiRow, ProductList, SegmentsSection, StockAlertsSection, TOP_PRODUCTS, TrendSection } from "../../_components/sections"
 import { Card, CardHeader, ErrorCard, SkeletonCard, growth } from "../../_components/ui"
@@ -174,6 +175,8 @@ export default async function BiStorePage({
           </Suspense>
         </div>
       </div>
+
+      {categories.data && <CategoryTable data={categories.data} compareText={compareText} />}
       </PendingArea>
     </div>
     </BiPendingProvider>

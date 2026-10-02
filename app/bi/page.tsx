@@ -8,6 +8,7 @@ import { compareLabel, compareParams, filterQuery, formatRange, hasProductFilter
 import FilterBar from "./_components/FilterBar"
 import { BiPendingProvider, PendingArea } from "./_components/BiPending"
 import StoreTable from "./_components/StoreTable"
+import CategoryTable from "./_components/CategoryTable"
 import { CategoryMix, Exceptions, KpiRow, ProductList, SegmentsSection, StockAlertsSection, TOP_PRODUCTS, TrendSection } from "./_components/sections"
 import { ErrorCard, SkeletonCard } from "./_components/ui"
 import { getT } from "@/app/lib/i18n/server"
@@ -108,6 +109,8 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
           </Suspense>
         </div>
       </div>
+
+      {categories.data && <CategoryTable data={categories.data} compareText={compareText} />}
 
       </PendingArea>
 

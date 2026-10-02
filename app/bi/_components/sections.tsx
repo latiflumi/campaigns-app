@@ -45,7 +45,8 @@ export async function KpiRow({
         label={items ? k.itemSales : k.sales}
         value={formatEurWhole(current.sales)}
         delta={<Delta value={growth(base.current.sales, base.previous.sales)} kind="pct" na={k.na} />}
-        foot={compareText}
+        foot=""
+        previous={k.prev(compareText, formatEurWhole(base.previous.sales))}
         badge={lfl ? "LFL" : undefined}
         badgeTitle={k.lflTitle}
       />
@@ -53,7 +54,8 @@ export async function KpiRow({
         label={k.units}
         value={formatInt(current.units)}
         delta={<Delta value={growth(base.current.units, base.previous.units)} kind="pct" na={k.na} />}
-        foot={compareText}
+        foot=""
+        previous={k.prev(compareText, formatInt(base.previous.units))}
         badge={lfl ? "LFL" : undefined}
         badgeTitle={k.lflTitle}
       />
@@ -62,18 +64,21 @@ export async function KpiRow({
         value={current.marginPct === null ? "—" : formatPct(current.marginPct)}
         delta={<Delta value={pp(current.marginPct, previous.marginPct)} kind="pp" na={k.na} />}
         foot={k.profit(formatEurWhole(current.grossProfit))}
+        previous={previous.marginPct === null ? undefined : k.prev(compareText, formatPct(previous.marginPct))}
       />
       <KpiTile
         label={k.markdown}
         value={current.markdownPct === null ? "—" : formatPct(current.markdownPct)}
         delta={<Delta value={pp(current.markdownPct, previous.markdownPct)} kind="pp" invert na={k.na} />}
         foot={k.discount(formatEurWhole(current.markdownAmount))}
+        previous={previous.markdownPct === null ? undefined : k.prev(compareText, formatPct(previous.markdownPct))}
       />
       <KpiTile
         label={items ? k.perReceipt : k.basket}
         value={current.atv === null ? "—" : formatEur(current.atv)}
         delta={<Delta value={current.atv !== null && previous.atv ? growth(current.atv, previous.atv) : null} kind="pct" na={k.na} />}
         foot={current.upt === null ? "" : k.basketFoot(String(current.upt).replace(".", ","), formatInt(current.receipts))}
+        previous={previous.atv === null ? undefined : k.prev(compareText, formatEur(previous.atv))}
       />
     </div>
   )

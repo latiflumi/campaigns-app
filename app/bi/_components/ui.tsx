@@ -76,6 +76,7 @@ export function KpiTile({
   foot,
   badge,
   badgeTitle,
+  previous,
 }: {
   label: string
   value: string
@@ -83,6 +84,8 @@ export function KpiTile({
   foot: string
   badge?: string
   badgeTitle?: string
+  /** The comparison period's value, e.g. "Kundrejt vitit të kaluar: €12.345" */
+  previous?: string
 }) {
   return (
     <div className="min-w-0 rounded-2xl border border-neutral-200 bg-white p-4 shadow-xs sm:p-5 dark:border-neutral-800 dark:bg-neutral-900">
@@ -99,6 +102,7 @@ export function KpiTile({
         {delta}
         <span className="truncate">{foot}</span>
       </div>
+      {previous && <div className="mt-1 truncate text-[11px] text-neutral-400 tabular-nums dark:text-neutral-500">{previous}</div>}
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { prisma } from './lib/prisma'
 import { avatarUrl } from './lib/avatar'
 import UserMenu from './UserMenu'
 import PresencePing from './PresencePing'
+import NotificationBell from './NotificationBell'
 import { touchPresence } from './lib/presence'
 import ThemeToggle from './ThemeToggle'
 import AppToaster from './AppToaster'
@@ -62,6 +63,9 @@ export default async function RootLayout({
   // Presence: mark this user as seen (at most one write a minute; never blocks or breaks the page)
   if (showHeader) touchPresence(session.userId).catch(() => {});
 
+  // Unread notifications for the bell (the bell refreshes the count itself afterwards)
+  const unread = showHeader ? await prisma.notification.count({ where: { userId: session.userId, readAt: null } }).catch(() => 0) : 0;
+
   return (
     <html lang={locale} className={roboto.variable} data-theme={theme} suppressHydrationWarning>
       <body className="font-sans antialiased bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 min-h-screen">
@@ -96,6 +100,7 @@ export default async function RootLayout({
                 </div>
                 <div className="flex items-center gap-3">
                   <LanguageToggle className="hidden sm:inline-flex" />
+                  <NotificationBell initialUnread={unread} />
                   <ThemeToggle className="text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-white" />
                   <UserMenu name={displayName} userName={session.userName} avatarSrc={avatarSrc} isAdmin={isAdmin} />
                   <PresencePing />

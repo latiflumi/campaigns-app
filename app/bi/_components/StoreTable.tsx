@@ -8,7 +8,7 @@ import { Building2 } from "lucide-react"
 import type { BiStoreRow } from "@/app/lib/bi/types"
 import { brandOf, locationOf } from "@/app/lib/bi/brands"
 import { formatEurWhole, formatPct } from "../../campaigns/_components/campaign-utils"
-import { Card, CardHeader, cx, growth, signedPct } from "./ui"
+import { Card, CardHeader, cx, growth, signedPct, signedPp } from "./ui"
 import { useT } from "@/app/lib/i18n/client"
 
 type Key = "name" | "sales" | "growth" | "margin" | "markdown" | "atv" | "upt"
@@ -36,6 +36,29 @@ function GrowthBar({ g }: { g: number }) {
     </div>
   )
 }
+
+/**
+ * Change against the comparison period, under a value: "▲ +1,2 pp" (percentages) or "▼ −4,3%" (amounts).
+ * Green = better. `invert` for markdown, where going up is worse.
+ */
+function Change({ value, kind, invert }: { value: number | null; kind: "pp" | "pct"; invert?: boolean }) {
+  if (value === null || !Number.isFinite(value)) return null
+  const flat = kind === "pp" ? Math.abs(value) < 0.05 : Math.abs(value) < 0.0005
+  const good = invert ? value < 0 : value > 0
+  return (
+    <div
+      className={cx(
+        "mt-0.5 text-[10.5px] font-medium tabular-nums",
+        flat ? "text-neutral-400" : good ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400",
+      )}
+    >
+      {flat ? "•" : value > 0 ? "▲" : "▼"} {kind === "pp" ? signedPp(value) : signedPct(value)}
+    </div>
+  )
+}
+
+const ppChange = (a: number | null, b: number | null) => (a === null || b === null ? null : a - b)
+const pctChange = (a: number | null, b: number | null) => (a === null || !b ? null : growth(a, b))
 
 export default function StoreTable({ rows, compareLabel, query }: { rows: BiStoreRow[]; compareLabel: string; query: string }) {
   const router = useRouter()
@@ -112,10 +135,22 @@ export default function StoreTable({ rows, compareLabel, query }: { rows: BiStor
                     {g === null ? (r.lfl ? t.bi.kpi.na : t.bi.storesTable.new) : signedPct(g)}
                   </td>
                   <td className="px-2 py-2.5">{g !== null && <GrowthBar g={g} />}</td>
-                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.marginPct === null ? "—" : formatPct(r.current.marginPct)}</td>
-                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.markdownPct === null ? "—" : formatPct(r.current.markdownPct)}</td>
-                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">{r.current.atv === null ? "—" : formatEurWhole(r.current.atv)}</td>
-                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300" title={t.bi.storesTable.uptTitle}>{r.current.upt === null ? "—" : r.current.upt.toFixed(2).replace(".", ",")}</td>
+                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">
+                    {r.current.marginPct === null ? "—" : formatPct(r.current.marginPct)}
+                    <Change value={ppChange(r.current.marginPct, r.previous.marginPct)} kind="pp" />
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">
+                    {r.current.markdownPct === null ? "—" : formatPct(r.current.markdownPct)}
+                    <Change value={ppChange(r.current.markdownPct, r.previous.markdownPct)} kind="pp" invert />
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300">
+                    {r.current.atv === null ? "—" : formatEurWhole(r.current.atv)}
+                    <Change value={pctChange(r.current.atv, r.previous.atv)} kind="pct" />
+                  </td>
+                  <td className="px-3 py-2.5 text-right text-neutral-700 tabular-nums dark:text-neutral-300" title={t.bi.storesTable.uptTitle}>
+                    {r.current.upt === null ? "—" : r.current.upt.toFixed(2).replace(".", ",")}
+                    <Change value={pctChange(r.current.upt, r.previous.upt)} kind="pct" />
+                  </td>
                 </tr>
               )
             })}
