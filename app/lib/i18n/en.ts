@@ -571,6 +571,10 @@ export const en = {
       search: "Search…",
       noMatches: "No matches",
       notSoldHere: "not sold in this selection",
+      price: "Price",
+      allPrices: "All prices",
+      prices: { full: "Full price", disc: "Discounted" },
+      stockIgnoresPrice: "The price filter doesn't apply to stock.",
     },
 
     kpi: {
@@ -589,6 +593,8 @@ export const en = {
       prev: (compare: string, value: string) => `${compare.charAt(0).toUpperCase()}${compare.slice(1)}: ${value}`,
     },
     categoryTable: {
+      scrollLeft: "Scroll left",
+      scrollRight: "Scroll right",
       title: "Category performance",
       sub: (compare: string) => `Idx = this period ÷ comparison × 100 (${compare}) · stock is today's`,
       category: "Category",
@@ -672,6 +678,11 @@ export const en = {
       notSet: "Not set",
       otherSeason: "Other / not set",
       noBrand: "No brand",
+    },
+    search: {
+      placeholder: "Search by name or style number",
+      clear: "Clear search",
+      none: (q: string) => `No products match “${q}”.`,
     },
     products: {
       title: "Top products",

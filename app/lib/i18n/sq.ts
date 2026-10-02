@@ -562,6 +562,10 @@ export const sq: Dict = {
       search: "Kërko…",
       noMatches: "Asnjë rezultat",
       notSoldHere: "pa shitje në këtë përzgjedhje",
+      price: "Çmimi",
+      allPrices: "Të gjitha çmimet",
+      prices: { full: "Çmim i plotë", disc: "Me zbritje" },
+      stockIgnoresPrice: "Filtri i çmimit nuk vlen për stokun.",
     },
 
     kpi: {
@@ -580,6 +584,8 @@ export const sq: Dict = {
       prev: (compare: string, value: string) => `${compare.charAt(0).toUpperCase()}${compare.slice(1)}: ${value}`,
     },
     categoryTable: {
+      scrollLeft: "Lëviz majtas",
+      scrollRight: "Lëviz djathtas",
       title: "Performanca sipas kategorive",
       sub: (compare: string) => `Idx = kjo periudhë ÷ krahasimi × 100 (${compare}) · stoku është ai i sotëm`,
       category: "Kategoria",
@@ -663,6 +669,11 @@ export const sq: Dict = {
       notSet: "Pa vlerë",
       otherSeason: "Tjetër / pa vlerë",
       noBrand: "Pa brend",
+    },
+    search: {
+      placeholder: "Kërko sipas emrit ose numrit të modelit",
+      clear: "Pastro kërkimin",
+      none: (q: string) => `Asnjë produkt nuk përputhet me “${q}”.`,
     },
     products: {
       title: "Produktet kryesore",

@@ -2,13 +2,13 @@
 
 // app/bi/_components/FilterBar.tsx
 // Quick period presets, the date picker (any period vs any comparison), store chain, plus the product
-// filter (gender / season / brand).
+// filter (gender / season / brand) and the price filter (full price / discounted sale lines).
 // Changing a filter updates the URL; the server page re-renders with it.
 import { useTransition } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { motion } from "motion/react"
 import { Loader2, X } from "lucide-react"
-import { PRESETS, QUICK_PRESETS, filterQuery, type BiFilters, type Preset, type UrlFilters } from "@/app/lib/bi/filters"
+import { PRESETS, PRICES, QUICK_PRESETS, filterQuery, type BiFilters, type Preset, type UrlFilters } from "@/app/lib/bi/filters"
 import type { ProductOptions } from "@/app/lib/bi/attributes"
 import DateRangePicker from "./DateRangePicker"
 import FilterPicker from "./FilterPicker"
@@ -69,7 +69,7 @@ export default function FilterBar({ filters, brands, productOptions }: Props) {
   const update = (next: Partial<UrlFilters>) =>
     startTransition(() => router.push(`${pathname}?${filterQuery({ ...filters, ...next })}`, { scroll: false }))
 
-  const productActive = filters.gender !== "all" || filters.season !== "all" || filters.pbrand !== "all"
+  const productActive = filters.gender !== "all" || filters.season !== "all" || filters.pbrand !== "all" || filters.price !== "all"
 
   return (
     <div className="space-y-2 rounded-2xl border border-neutral-200 bg-white/90 p-3 shadow-xs backdrop-blur-md lg:sticky lg:top-[4.75rem] lg:z-30 dark:border-neutral-800 dark:bg-neutral-900/90">
@@ -98,11 +98,19 @@ export default function FilterBar({ filters, brands, productOptions }: Props) {
           <span className="col-span-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase sm:mr-1">{t.bi.filter.products}</span>
           <FilterPicker label={t.bi.filter.gender} allLabel={t.bi.filter.allGenders} value={filters.gender} groups={[{ options: productOptions.genders }]} onChange={(gender) => update({ gender })} className="sm:w-40" />
           <FilterPicker label={t.bi.filter.season} allLabel={t.bi.filter.allSeasons} value={filters.season} groups={productOptions.seasons} onChange={(season) => update({ season })} className="sm:w-52" />
-          <FilterPicker label={t.bi.filter.productBrand} allLabel={t.bi.filter.allBrands} value={filters.pbrand} groups={[{ options: productOptions.brands }]} onChange={(pbrand) => update({ pbrand })} className="col-span-2 sm:w-48" />
+          <FilterPicker label={t.bi.filter.productBrand} allLabel={t.bi.filter.allBrands} value={filters.pbrand} groups={[{ options: productOptions.brands }]} onChange={(pbrand) => update({ pbrand })} className="sm:w-48" />
+          <FilterPicker
+            label={t.bi.filter.price}
+            allLabel={t.bi.filter.allPrices}
+            value={filters.price}
+            groups={[{ options: PRICES.map((p) => ({ value: p, label: t.bi.filter.prices[p] })) }]}
+            onChange={(price) => update({ price: price as BiFilters["price"] })}
+            className="sm:w-40"
+          />
           {productActive && (
             <button
               type="button"
-              onClick={() => update({ gender: "all", season: "all", pbrand: "all" })}
+              onClick={() => update({ gender: "all", season: "all", pbrand: "all", price: "all" })}
               className="col-span-2 inline-flex h-9 cursor-pointer items-center justify-center gap-1 rounded-xl px-3 text-xs font-semibold text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 sm:col-span-1 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
             >
               <X className="size-3.5" />

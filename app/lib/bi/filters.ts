@@ -3,6 +3,7 @@
 //   ?period=mtd&compare=ly&brand=jack-jones&gender=23168&season=noos&pbrand=only
 //   ?period=custom&from=2026-09-01&to=2026-09-15&compare=custom&cf=2025-09-01&ct=2025-09-15
 //   brand  = store chain (from the store name); gender / season / pbrand = product filter (erp-api)
+//   price  = full | disc: sale lines sold at list price / more than 1% under it (erp-api; not for stock)
 // Labels live in the i18n dictionary (t.bi.presets / t.bi.compares).
 import type { Dict } from "@/app/lib/i18n/dictionaries"
 
@@ -27,6 +28,10 @@ export type Compare = "ly" | "lyw" | "pp" | "custom"
 
 export const COMPARES: { id: Compare }[] = [{ id: "ly" }, { id: "lyw" }, { id: "pp" }, { id: "custom" }]
 
+/** Price filter: full = sold at list price, disc = sold more than 1% under it (labels: t.bi.filter.prices) */
+export const PRICES = ["full", "disc"] as const
+export type Price = (typeof PRICES)[number]
+
 export interface BiFilters {
   period: Period
   compare: Compare
@@ -34,6 +39,7 @@ export interface BiFilters {
   gender: string // KlasifikatoretDetale id or "all"
   season: string // "noos", collection year "26", collection "2609" or "all"
   pbrand: string // product brand key from /bi/attributes or "all"
+  price: Price | "all"
   from: string
   to: string
   cmpFrom: string
@@ -138,8 +144,10 @@ export function parseFilters(params: Params, now = Date.now()): BiFilters {
   const s = (one(params.season) ?? "").toLowerCase()
   const season = s === "noos" || /^\d{2}(\d{2})?$/.test(s) ? s : "all"
   const pbrand = (one(params.pbrand) ?? "all").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60) || "all"
+  const pr = one(params.price)
+  const price = PRICES.find((x) => x === pr) ?? "all"
 
-  return { period, compare, brand, gender, season, pbrand, ...range, cmpFrom: cmp.from, cmpTo: cmp.to }
+  return { period, compare, brand, gender, season, pbrand, price, ...range, cmpFrom: cmp.from, cmpTo: cmp.to }
 }
 
 const parts = (d: string, t: Dict) => ({ y: d.slice(0, 4), m: t.dates.months[Number(d.slice(5, 7)) - 1], d: String(Number(d.slice(8))) })
@@ -171,7 +179,7 @@ export function filterQuery(f: UrlFilters) {
     q.set("cf", f.cmpFrom)
     q.set("ct", f.cmpTo)
   }
-  for (const k of ["brand", "gender", "season", "pbrand"] as const) if (f[k] && f[k] !== "all") q.set(k, f[k])
+  for (const k of ["brand", "gender", "season", "pbrand", "price"] as const) if (f[k] && f[k] !== "all") q.set(k, f[k])
   return q.toString()
 }
 
@@ -180,12 +188,13 @@ export function compareParams(f: Pick<BiFilters, "compare" | "cmpFrom" | "cmpTo"
   return f.compare === "custom" ? { compare: f.compare, cmpFrom: f.cmpFrom, cmpTo: f.cmpTo } : { compare: f.compare }
 }
 
-/** The product part of the filters, as erp-api query params (undefined = not set). */
-export function productFilter(f: Pick<BiFilters, "gender" | "season" | "pbrand">): ProductFilter {
+/** The product and price part of the filters, as erp-api query params (undefined = not set). */
+export function productFilter(f: Pick<BiFilters, "gender" | "season" | "pbrand" | "price">): ProductFilter {
   return {
     gender: f.gender === "all" ? undefined : f.gender,
     season: f.season === "all" ? undefined : f.season,
     brand: f.pbrand === "all" ? undefined : f.pbrand,
+    price: f.price === "all" ? undefined : f.price,
   }
 }
 
@@ -193,6 +202,9 @@ export interface ProductFilter {
   gender?: string
   season?: string
   brand?: string
+  /** Sale lines only: stock has no price side, so stock requests leave it out */
+  price?: Price
 }
 
-export const hasProductFilter = (f: ProductFilter) => Boolean(f.gender || f.season || f.brand)
+/** True when sales come from item lines instead of payments (any product or price filter). */
+export const hasProductFilter = (f: ProductFilter) => Boolean(f.gender || f.season || f.brand || f.price)

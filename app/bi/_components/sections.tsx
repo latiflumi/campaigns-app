@@ -276,7 +276,11 @@ export async function StockAlertsSection({
   const { alerts, window } = res.data
   return (
     <Card>
-      <CardHeader icon={alerts.length ? PackageX : Boxes} title={t.bi.stock.title} sub={t.bi.stock.sub(window.days)} />
+      <CardHeader
+        icon={alerts.length ? PackageX : Boxes}
+        title={t.bi.stock.title}
+        sub={filter?.price ? `${t.bi.stock.sub(window.days)} · ${t.bi.filter.stockIgnoresPrice}` : t.bi.stock.sub(window.days)}
+      />
       {alerts.length === 0 ? (
         <p className="px-5 py-8 text-sm text-neutral-500">{t.bi.stock.none}</p>
       ) : (

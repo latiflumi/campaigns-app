@@ -49,7 +49,7 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
   ])
   const allOptions = allAttrs.data ? productOptions(allAttrs.data, t) : null
   const options = attrs.data ? keepSelected(productOptions(attrs.data, t), allOptions, filters) : allOptions
-  const productText = productFilterText(filters, allOptions)
+  const productText = productFilterText(filters, allOptions, t)
 
   const compareText = compareLabel(filters, t)
   const query = filterQuery(filters)
@@ -92,6 +92,8 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
       </div>
 
       {/* Full width: the table has many columns and shouldn't need a sideways scroll on desktop */}
+      {categories.data && <CategoryTable data={categories.data} compareText={compareText} />}
+
       {summary.data ? <StoreTable rows={summary.data.stores} compareLabel={compareText} query={query} /> : <ErrorCard message={summary.error!} />}
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
@@ -110,7 +112,6 @@ export default async function BiOverviewPage({ searchParams }: { searchParams: P
         </div>
       </div>
 
-      {categories.data && <CategoryTable data={categories.data} compareText={compareText} />}
 
       </PendingArea>
 

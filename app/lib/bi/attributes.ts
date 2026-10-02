@@ -1,6 +1,7 @@
 // app/lib/bi/attributes.ts
 // Display helpers for the ERP's product attributes (labels in the ERP are Albanian).
 import type { BiAttributes } from "./types"
+import type { Price } from "./filters"
 import type { Dict } from "@/app/lib/i18n/dictionaries"
 
 /** ERP gender label in the current language (English labels from t.genders; Albanian = the ERP's own). */
@@ -82,12 +83,13 @@ export function keepSelected(o: ProductOptions, all: ProductOptions | null, f: {
   }
 }
 
-/** Human summary of the product filter, e.g. "Men · NOOS · Jack & Jones"; null when none is set. */
-export function productFilterText(f: { gender: string; season: string; pbrand: string }, o: ProductOptions | null) {
+/** Human summary of the product filter, e.g. "Men · NOOS · Jack & Jones · Discounted"; null when none is set. */
+export function productFilterText(f: { gender: string; season: string; pbrand: string; price: Price | "all" }, o: ProductOptions | null, t: Dict) {
   const find = (opts: Option[], v: string) => opts.find((x) => x.value === v)?.label ?? v
   const parts: string[] = []
   if (f.gender !== "all") parts.push(o ? find(o.genders, f.gender) : `gender ${f.gender}`)
   if (f.season !== "all") parts.push(o ? find(o.seasons.flatMap((g) => g.options), f.season).replace(/ \(.*\)$/, "") : f.season)
   if (f.pbrand !== "all") parts.push(o ? find(o.brands, f.pbrand) : f.pbrand)
+  if (f.price !== "all") parts.push(t.bi.filter.prices[f.price])
   return parts.length ? parts.join(" · ") : null
 }

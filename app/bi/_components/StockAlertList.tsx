@@ -11,6 +11,7 @@ import { locationOf } from "@/app/lib/bi/brands"
 import ProductThumb from "@/app/ProductThumb"
 import { formatDay, formatInt } from "../../campaigns/_components/campaign-utils"
 import AttrChips from "./AttrChips"
+import ListSearch, { NoMatch, productMatcher } from "./ListSearch"
 import { cx } from "./ui"
 import { useT } from "@/app/lib/i18n/client"
 import type { Dict } from "@/app/lib/i18n/dictionaries"
@@ -81,14 +82,19 @@ function TransferHint({ a, coverWeeks, t }: { a: BiStockAlert; coverWeeks: numbe
 export default function StockAlertList({ data, showStore, query }: { data: BiStockAlerts; showStore: boolean; query: string }) {
   const t = useT()
   const [kind, setKind] = useState<Kind | "all">("all")
-  const { alerts, window } = data
+  const [search, setSearch] = useState("")
+  const { window } = data
+  // The search narrows everything, so the chip counts show what it found per type
+  const matches = productMatcher(search)
+  const alerts = data.alerts.filter(matches)
   const counts = { out: 0, low: 0, slow: 0 }
   for (const a of alerts) counts[a.kind]++
   const shown = kind === "all" ? alerts : alerts.filter((a) => a.kind === kind)
 
   const chips: { id: Kind | "all"; label: string; count: number }[] = [
     { id: "all", label: t.bi.stock.all, count: alerts.length },
-    ...(Object.keys(KIND) as Kind[]).filter((k) => counts[k] > 0).map((k) => ({ id: k, label: t.bi.stock.kinds[k], count: counts[k] })),
+    // A type stays listed (with 0) while searching, so the selected chip never disappears
+    ...(Object.keys(KIND) as Kind[]).filter((k) => data.alerts.some((a) => a.kind === k)).map((k) => ({ id: k, label: t.bi.stock.kinds[k], count: counts[k] })),
   ]
 
   return (
@@ -115,6 +121,8 @@ export default function StockAlertList({ data, showStore, query }: { data: BiSto
           </button>
         ))}
       </div>
+      <ListSearch value={search} onChange={setSearch} />
+      {shown.length === 0 && <NoMatch query={search} />}
       <ul className="max-h-[30rem] divide-y divide-neutral-100 overflow-y-auto overscroll-contain dark:divide-neutral-800">
         {shown.map((a) => (
           <li key={`${a.kind}-${a.orgId}-${a.articleId}`} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 px-5 py-2.5">

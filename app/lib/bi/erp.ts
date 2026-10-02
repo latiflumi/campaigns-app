@@ -35,14 +35,15 @@ export const getBiSummary = (r: Range) => get<BiSummary>("/bi/summary", { ...r }
 export const getBiTimeseries = (r: Range) => get<BiTimeseries>("/bi/timeseries", { ...r })
 export const getBiCategories = (r: Range) => get<BiCategories>("/bi/categories", { ...r })
 export const getBiProducts = (r: Omit<Range, "compare" | "cmpFrom" | "cmpTo">, limit = 8) => get<BiProduct[]>("/bi/products", { ...r, limit })
+// Stock and filter options have no price side: the price filter is left out (and the cache shared)
 export const getBiStockAlerts = (stores: string | undefined, limit = 8, filter: ProductFilter = {}) =>
-  get<BiStockAlerts>("/bi/stock-alerts", { stores, limit, ...filter })
+  get<BiStockAlerts>("/bi/stock-alerts", { stores, limit, ...filter, price: undefined })
 export const getBiSegments = (r: Range) => get<BiSegments>("/bi/segments", { ...r })
 /**
  * Filter options (genders, seasons, brands) sold in the last 365 days, chain-wide by default. With stores
  * and/or a product filter the lists are faceted: each is narrowed by the store scope and the other filters.
  */
-export const getBiAttributes = (stores = "", filter: ProductFilter = {}) => get<BiAttributes>("/bi/attributes", { stores, ...filter })
+export const getBiAttributes = (stores = "", filter: ProductFilter = {}) => get<BiAttributes>("/bi/attributes", { stores, ...filter, price: undefined })
 
 /** Awaits a promise without throwing, so one failing section doesn't take the whole page down. */
 export async function settle<T>(p: Promise<T>): Promise<{ data: T; error: null } | { data: null; error: string }> {

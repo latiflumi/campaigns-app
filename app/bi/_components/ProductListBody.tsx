@@ -12,6 +12,7 @@ import ProductThumb from "@/app/ProductThumb"
 import { useT } from "@/app/lib/i18n/client"
 import { formatEurWhole, formatInt, formatPct } from "../../campaigns/_components/campaign-utils"
 import AttrChips from "./AttrChips"
+import ListSearch, { NoMatch, productMatcher } from "./ListSearch"
 import { cx } from "./ui"
 
 type SortKey = "sales" | "units" | "margin" | "stock"
@@ -68,7 +69,10 @@ export default function ProductListBody({ products, days, showStores = true }: {
     // Runs out soonest first; items with no net sales go last
     stock: (a, b) => (cover(a) ?? Infinity) - (cover(b) ?? Infinity) || b.sales - a.sales,
   }
-  const sorted = [...products].sort(sorts[sort])
+  // Rank comes from the full sorted list, so a search keeps each product's real position
+  const [search, setSearch] = useState("")
+  const matches = productMatcher(search)
+  const sorted = [...products].sort(sorts[sort]).map((p, i) => ({ p, rank: i + 1 })).filter(({ p }) => matches(p))
   const coverText = (p: BiProduct) => {
     const w = cover(p)
     return w === null ? pr.noSales : pr.cover(w < 10 ? w.toFixed(1).replace(".", ",") : formatInt(w))
@@ -111,18 +115,20 @@ export default function ProductListBody({ products, days, showStores = true }: {
           </button>
         ))}
       </div>
+      <ListSearch value={search} onChange={setSearch} />
+      {sorted.length === 0 && <NoMatch query={search} />}
       <ol className="max-h-[30rem] divide-y divide-neutral-100 overflow-y-auto overscroll-contain dark:divide-neutral-800">
-        {sorted.map((p, i) => {
+        {sorted.map(({ p, rank }) => {
           const f = figure(p)
           return (
             <li key={p.articleId} className="grid grid-cols-[1.5rem_auto_minmax(0,1fr)_auto] items-center gap-3 px-5 py-2.5">
               <span
                 className={cx(
                   "inline-grid size-6 place-items-center rounded-md text-[11px] font-bold",
-                  i === 0 ? "bg-brand-600 text-white dark:bg-brand-400 dark:text-neutral-950" : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
+                  rank === 1 ? "bg-brand-600 text-white dark:bg-brand-400 dark:text-neutral-950" : "bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400",
                 )}
               >
-                {i + 1}
+                {rank}
               </span>
               <ProductThumb styleNumber={p.styleNumber} colorCode={p.colorCode} alt={p.productName} />
               <span className="min-w-0">

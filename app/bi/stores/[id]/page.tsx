@@ -61,7 +61,7 @@ export default async function BiStorePage({
   ])
   const allOptions = allAttrs.data ? productOptions(allAttrs.data, t) : null
   const options = attrs.data ? keepSelected(productOptions(attrs.data, t), allOptions, filters) : allOptions
-  const productText = productFilterText(filters, allOptions)
+  const productText = productFilterText(filters, allOptions, t)
 
   const store = meta.data?.find((s) => s.orgId === orgId)
   if (meta.data && !store) notFound()
